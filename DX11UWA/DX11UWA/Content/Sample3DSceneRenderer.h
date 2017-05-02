@@ -4,6 +4,12 @@
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 
+// My Header Files
+#include "ObjLoader.h"
+#include "Structures.h"
+
+// Texture header file
+#include "DDSTextureLoader.h"
 
 namespace DX11UWA
 {
@@ -60,6 +66,20 @@ namespace DX11UWA
 
 		// Matrix data member for the camera
 		DirectX::XMFLOAT4X4 m_camera;
+
+		////////////////////////////////////////////////////////////////
+		//                    BEGIN MC MODEL STUFF                    //
+		////////////////////////////////////////////////////////////////
+		// Master Chief
+		Model master_chief_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_master_chief;
+
+		// Texture Variables
+		Microsoft::WRL::ComPtr<ID3D11Resource> masterChief_texture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> masterChief_meshSRV;
+		////////////////////////////////////////////////////////////////
+		//                    BEGIN MC MODEL STUFF                    //
+		////////////////////////////////////////////////////////////////
 	};
 }
 

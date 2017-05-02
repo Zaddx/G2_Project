@@ -44,6 +44,12 @@
     <Filter Include="Common\Source">
       <UniqueIdentifier>{6ce5511b-6e37-49a1-8d5e-bfa27029cc93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Model">
+      <UniqueIdentifier>{b75426d5-8c8f-456c-9121-761e7d7a64ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Textures">
+      <UniqueIdentifier>{b9633d2d-0a36-40be-9d93-a5d3bee5b4a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -66,6 +72,12 @@
     </ClCompile>
     <ClCompile Include="Common\DeviceResources.cpp">
       <Filter>Common\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\ObjLoader.cpp">
+      <Filter>Content\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\DDSTextureLoader.cpp">
+      <Filter>Content\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,10 +111,22 @@
     <ClInclude Include="Common\StepTimer.h">
       <Filter>Common\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Content\ObjLoader.h">
+      <Filter>Content\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Structures.h">
+      <Filter>Content\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\DDSTextureLoader.h">
+      <Filter>Content\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Textures\masterchief2.dds">
+      <Filter>Assets\Textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -110,12 +134,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DX11UWA_TemporaryKey.pfx" />
+    <None Include="Assets\Models\H2_MC.obj">
+      <Filter>Assets\Model</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\SampleVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\TexturePixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\TextureVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
