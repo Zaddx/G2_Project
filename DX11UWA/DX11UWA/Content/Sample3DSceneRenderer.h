@@ -22,7 +22,7 @@ namespace DX11UWA
 		void CreateWindowSizeDependentResources(void);
 		void ReleaseDeviceDependentResources(void);
 		void Update(DX::StepTimer const& timer);
-		void Render(void);
+		void Render(int _camera_number);
 		void StartTracking(void);
 		void TrackingUpdate(float positionX);
 		void StopTracking(void);
@@ -66,6 +66,7 @@ namespace DX11UWA
 
 		// Matrix data member for the camera
 		DirectX::XMFLOAT4X4 m_camera;
+		DirectX::XMFLOAT4X4 m_camera2;
 
 		////////////////////////////////////////////////////////////////
 		//                    BEGIN MC MODEL STUFF                    //
@@ -78,7 +79,17 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Resource> masterChief_texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> masterChief_meshSRV;
 		////////////////////////////////////////////////////////////////
-		//                    BEGIN MC MODEL STUFF                    //
+		//                     END MC MODEL STUFF                     //
+		////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////
+		//                  BEGIN ASGARD MODEL STUFF                  //
+		////////////////////////////////////////////////////////////////
+		// Master Chief
+		Model chopper_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_chopper;
+		////////////////////////////////////////////////////////////////
+		//                   END ASGARD MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////
 	};
 }

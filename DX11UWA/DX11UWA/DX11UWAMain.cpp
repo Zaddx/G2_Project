@@ -21,9 +21,8 @@ DX11UWAMain::DX11UWAMain(const std::shared_ptr<DX::DeviceResources>& deviceResou
 
 	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
 	// e.g. for 60 FPS fixed timestep update logic, call:
-	
-	//m_timer.SetFixedTimeStep(true);
-	//m_timer.SetTargetElapsedSeconds(1.0 / 60);
+	m_timer.SetFixedTimeStep(true);
+	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	
 }
 
@@ -77,9 +76,23 @@ bool DX11UWAMain::Render(void)
 	context->ClearRenderTargetView(m_deviceResources->GetBackBufferRenderTargetView(), DirectX::Colors::Gray);
 	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	m_sceneRenderer->Render(1);
+	m_fpsTextRenderer->Render();
+
+	// Setup secondary Viewport
+	auto viewport_custom = m_deviceResources->GetScreenViewport();
+	viewport_custom.TopLeftX = m_deviceResources->GetScreenViewport().Width / 2.0f;
+
+	context->RSSetViewports(1, &viewport_custom);
+
+	ID3D11RenderTargetView *const targets_custom[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
+	context->OMSetRenderTargets(1, targets_custom, m_deviceResources->GetDepthStencilView());
+	
+	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
 	// Render the scene objects.
 	// TODO: Replace this with your app's content rendering functions.
-	m_sceneRenderer->Render();
+	m_sceneRenderer->Render(2);
 	m_fpsTextRenderer->Render();
 
 	return true;
@@ -97,6 +110,7 @@ void DX11UWAMain::OnDeviceRestored(void)
 {
 	m_sceneRenderer->CreateDeviceDependentResources();
 	m_fpsTextRenderer->CreateDeviceDependentResources();
+
 	CreateWindowSizeDependentResources();
 }
 

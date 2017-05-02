@@ -54,17 +54,22 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
-
+	XMStoreFloat4x4(&m_constantBufferData_chopper.projection, perspectiveMatrix * orientationMatrix);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
+	static const XMVECTORF32 eye = { 5.0f, 0.7f, -1.5f, 0.0f };
+	
+	static const XMVECTORF32 eye2 = { 5.0f, 1.5f, 1.5f, 0.0f };
+
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
+
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, XMMatrixLookAtLH(eye, at, up));
-
+	XMStoreFloat4x4(&m_constantBufferData_chopper.view, XMMatrixLookAtLH(eye, at, up));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -93,11 +98,11 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	XMMATRIX identity = XMMatrixIdentity();
 	XMStoreFloat4x4(&m_constantBufferData.model, identity);
 
-	// Scale down the Master Chief Model
+	// Set The model of the master chief model to the identity matrix
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.model, identity);
-	XMMATRIX scalar = XMMatrixScaling(0.15f, 0.15f, 0.15f);
-	XMMATRIX mesh_model = XMLoadFloat4x4(&m_constantBufferData_master_chief.model);
-	XMStoreFloat4x4(&m_constantBufferData_master_chief.model, XMMatrixMultiply(scalar, mesh_model));
+
+	// Set The model of the asgard base model to the identity matrix
+	XMStoreFloat4x4(&m_constantBufferData_chopper.model, identity);
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -176,7 +181,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		m_prevMousePos = m_currMousePos;
 	}
 
-
+	// Setup camera 2 buttons
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -216,7 +221,7 @@ void Sample3DSceneRenderer::StopTracking(void)
 }
 
 // Renders one frame using the vertex and pixel shaders.
-void Sample3DSceneRenderer::Render(void)
+void Sample3DSceneRenderer::Render(int _camera_number)
 {
 	// Loading is asynchronous. Only draw geometry after it's loaded.
 	if (!m_loadingComplete)
@@ -226,9 +231,17 @@ void Sample3DSceneRenderer::Render(void)
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
+	DirectX::XMFLOAT4X4 _camera_to_use;
+
+	if (_camera_number == 1)
+		_camera_to_use = m_camera;
+
+	else if (_camera_number == 2)
+		_camera_to_use = m_camera2;
+
 #pragma region Skybox
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera)));
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use)));
 
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -261,12 +274,12 @@ void Sample3DSceneRenderer::Render(void)
 	ID3D11ShaderResourceView** texViews[] = { masterChief_meshSRV.GetAddressOf() };
 	context->PSSetShaderResources(0, 1, *texViews);
 
-	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
 
 	// Setup Vertex Buffer
-	UINT bigDaddy_stride = sizeof(DX11UWA::VertexPositionUVNormal);
-	UINT bigDaddy_offset = 0;
-	context->IASetVertexBuffers(0, 1, master_chief_model._vertexBuffer.GetAddressOf(), &bigDaddy_stride, &bigDaddy_offset);
+	UINT masterChief_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT masterChief_offset = 0;
+	context->IASetVertexBuffers(0, 1, master_chief_model._vertexBuffer.GetAddressOf(), &masterChief_stride, &masterChief_offset);
 
 	// Set Index buffer
 	context->IASetIndexBuffer(master_chief_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -283,7 +296,6 @@ void Sample3DSceneRenderer::Render(void)
 	context->DrawIndexed(master_chief_model._indexCount, 0, 0);
 
 #pragma endregion
-
 
 }
 
@@ -326,14 +338,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-15.0f, -15.0f, -15.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-15.0f, -15.0f,  15.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-15.0f,  15.0f, -15.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-15.0f,  15.0f,  15.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(15.0f, -15.0f, -15.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(15.0f, -15.0f,  15.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(15.0f,  15.0f, -15.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(15.0f,  15.0f,  15.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-50.0f, -50.0f, -50.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-50.0f, -50.0f,  50.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-50.0f,  50.0f, -50.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-50.0f,  50.0f,  50.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(50.0f, -50.0f, -50.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(50.0f, -50.0f,  50.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(50.0f,  50.0f, -50.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(50.0f,  50.0f,  50.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -407,14 +419,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&masterChief_fileData[0], masterChief_fileData.size(), nullptr, &master_chief_model._vertexShader));
 
-		static const D3D11_INPUT_ELEMENT_DESC bigDaddy_vertexDesc[] =
+		static const D3D11_INPUT_ELEMENT_DESC master_chief_vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(bigDaddy_vertexDesc, ARRAYSIZE(bigDaddy_vertexDesc), &masterChief_fileData[0], masterChief_fileData.size(), &master_chief_model._inputLayout));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(master_chief_vertexDesc, ARRAYSIZE(master_chief_vertexDesc), &masterChief_fileData[0], masterChief_fileData.size(), &master_chief_model._inputLayout));
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
