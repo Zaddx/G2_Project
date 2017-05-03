@@ -71,6 +71,9 @@ namespace DX11UWA
 		DirectX::XMFLOAT4X4 m_camera;
 		DirectX::XMFLOAT4X4 m_camera2;
 
+		// Boolean to make camera 2 rotate on a axis
+		bool camera2_auto_rotate = false;
+
 		////////////////////////////////////////////////////////////////
 		//                    BEGIN MC MODEL STUFF                    //
 		////////////////////////////////////////////////////////////////

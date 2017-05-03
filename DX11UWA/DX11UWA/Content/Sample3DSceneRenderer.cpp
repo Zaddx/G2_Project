@@ -253,6 +253,17 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		}
 		m_prevMousePos2 = m_currMousePos2;
 	}
+
+	// Setup key press for Camera 2 auto rotation
+	// Once, key is pressed auto rotate != auto rotate
+	// Then, set the camera to rotate, look at currMousePos for help
+	if (m_kbuttons['H'])
+		camera2_auto_rotate != camera2_auto_rotate;
+
+	if (camera2_auto_rotate)
+	{
+		// Setup the camera to auto rotate 
+	}
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
