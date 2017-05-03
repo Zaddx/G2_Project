@@ -144,7 +144,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
 		XMStoreFloat4x4(&m_camera, result);
 	}
-	if (m_kbuttons[VK_SPACE])
+	if (m_kbuttons['R'])
 	{
 		XMMATRIX translation = XMMatrixTranslation( 0.0f, moveSpd * delta_time, 0.0f);
 		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
@@ -182,6 +182,77 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 
 	// Setup camera 2 buttons
+	if (m_kbuttons['I'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, moveSpd * delta_time);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+	if (m_kbuttons['K'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, -moveSpd * delta_time);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+	if (m_kbuttons['J'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(-moveSpd * delta_time, 0.0f, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+	if (m_kbuttons['L'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(moveSpd * delta_time, 0.0f, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+	if (m_kbuttons['M'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, -moveSpd * delta_time, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+	if (m_kbuttons['U'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, moveSpd * delta_time, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_camera2, result);
+	}
+
+	if (m_currMousePos2)
+	{
+		if (m_currMousePos2->Properties->IsLeftButtonPressed && m_prevMousePos2)
+		{
+			float dx = m_currMousePos2->Position.X - m_prevMousePos2->Position.X;
+			float dy = m_currMousePos2->Position.Y - m_prevMousePos2->Position.Y;
+
+			XMFLOAT4 pos = XMFLOAT4(m_camera2._41, m_camera2._42, m_camera2._43, m_camera2._44);
+
+			m_camera2._41 = 0;
+			m_camera2._42 = 0;
+			m_camera2._43 = 0;
+
+			XMMATRIX rotX = XMMatrixRotationX(dy * rotSpd * delta_time);
+			XMMATRIX rotY = XMMatrixRotationY(dx * rotSpd * delta_time);
+
+			XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+			temp_camera = XMMatrixMultiply(rotX, temp_camera);
+			temp_camera = XMMatrixMultiply(temp_camera, rotY);
+
+			XMStoreFloat4x4(&m_camera2, temp_camera);
+
+			m_camera2._41 = pos.x;
+			m_camera2._42 = pos.y;
+			m_camera2._43 = pos.z;
+		}
+		m_prevMousePos2 = m_currMousePos2;
+	}
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -192,6 +263,7 @@ void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
 void Sample3DSceneRenderer::SetMousePosition(const Windows::UI::Input::PointerPoint^ pos)
 {
 	m_currMousePos = const_cast<Windows::UI::Input::PointerPoint^>(pos);
+	m_currMousePos2 = const_cast<Windows::UI::Input::PointerPoint^>(pos);
 }
 
 void Sample3DSceneRenderer::SetInputDeviceData(const char* kb, const Windows::UI::Input::PointerPoint^ pos)

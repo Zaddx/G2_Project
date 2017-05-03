@@ -64,6 +64,9 @@ namespace DX11UWA
 		Windows::UI::Input::PointerPoint^ m_currMousePos;
 		Windows::UI::Input::PointerPoint^ m_prevMousePos;
 
+		Windows::UI::Input::PointerPoint^ m_currMousePos2;
+		Windows::UI::Input::PointerPoint^ m_prevMousePos2;
+
 		// Matrix data member for the camera
 		DirectX::XMFLOAT4X4 m_camera;
 		DirectX::XMFLOAT4X4 m_camera2;
