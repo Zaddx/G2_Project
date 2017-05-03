@@ -324,6 +324,9 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 #pragma region Skybox
 
+	ID3D11ShaderResourceView** skyboxViews[] = { skybox_meshSRV.GetAddressOf() };
+	context->PSSetShaderResources(0, 1, *skyboxViews);
+
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use)));
 
 	// Prepare the constant buffer to send it to the graphics device.
@@ -389,11 +392,26 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
 	auto loadVSTaskTexture = DX::ReadDataAsync(L"TextureVertexShader.cso");
 	auto loadPSTaskTexture = DX::ReadDataAsync(L"TexturePixelShader.cso");
+	auto loadVSTaskSkybox = DX::ReadDataAsync(L"SkyboxVertexShader.cso");
+	auto loadPSTaskSkybox = DX::ReadDataAsync(L"SkyboxPixelShader.cso");
 
 #pragma region Skybox
 
+	auto context_skybox = m_deviceResources->GetD3DDeviceContext();
+	ID3D11Device *device_skybox;
+	context_skybox->GetDevice(&device_skybox);
+
+	const char *skybox_path = "Assets/Textures/Halo_Reach_Skybox.dds";
+
+	size_t skybox_pathSize = strlen(skybox_path) + 1;
+	wchar_t *skybox_wc = new wchar_t[skybox_pathSize];
+	mbstowcs(&skybox_wc[0], skybox_path, skybox_pathSize);
+
+	HRESULT hr2;
+	hr2 = CreateDDSTextureFromFile(device_skybox, skybox_wc, &skybox_texture, &skybox_meshSRV);
+
 	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
+	auto createVSTask = loadVSTaskSkybox.then([this](const std::vector<byte>& fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&fileData[0], fileData.size(), nullptr, &m_vertexShader));
 
@@ -407,7 +425,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData)
+	auto createPSTask = loadPSTaskSkybox.then([this](const std::vector<byte>& fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&fileData[0], fileData.size(), nullptr, &m_pixelShader));
 
