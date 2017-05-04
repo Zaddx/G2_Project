@@ -140,20 +140,20 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 	if (m_kbuttons['X'])
 	{
-		XMMATRIX translation = XMMatrixTranslation( 0.0f, -moveSpd * delta_time, 0.0f);
+		XMMATRIX translation = XMMatrixTranslation(0.0f, -moveSpd * delta_time, 0.0f);
 		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
 		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
 		XMStoreFloat4x4(&m_camera, result);
 	}
 	if (m_kbuttons['R'])
 	{
-		XMMATRIX translation = XMMatrixTranslation( 0.0f, moveSpd * delta_time, 0.0f);
+		XMMATRIX translation = XMMatrixTranslation(0.0f, moveSpd * delta_time, 0.0f);
 		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
 		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
 		XMStoreFloat4x4(&m_camera, result);
 	}
 
-	if (m_currMousePos) 
+	if (m_currMousePos)
 	{
 		if (m_currMousePos->Properties->IsRightButtonPressed && m_prevMousePos)
 		{
@@ -258,25 +258,47 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// Setup key press for Camera 2 auto rotation
 	// Once, key is pressed auto rotate != auto rotate
 	// Then, set the camera to rotate, look at currMousePos for help
-	if (m_kbuttons['H'])
-		camera2_auto_rotate != camera2_auto_rotate;
+	//if (m_kbuttons['H'])
+	//	camera2_auto_rotate != camera2_auto_rotate;
 
-	if (camera2_auto_rotate)
-	{
-		// Setup the camera to auto rotate 
-	}
+	//if (camera2_auto_rotate)
+	//{
+	//	// Setup the camera to auto rotate 
+	//	float dx = m_currMousePos2->Position.X - m_prevMousePos2->Position.X;
+	//	float dy = m_currMousePos2->Position.Y - m_prevMousePos2->Position.Y;
+
+	//	XMFLOAT4 pos = XMFLOAT4(m_camera2._41, m_camera2._42, m_camera2._43, m_camera2._44);
+
+	//	m_camera2._41 = 0;
+	//	m_camera2._42 = 0;
+	//	m_camera2._43 = 0;
+
+	//	XMMATRIX rotX = XMMatrixRotationX(dy * rotSpd * delta_time);
+	//	XMMATRIX rotY = XMMatrixRotationY(dx * rotSpd * delta_time);
+
+	//	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
+	//	temp_camera = XMMatrixMultiply(rotX, temp_camera);
+	//	temp_camera = XMMatrixMultiply(temp_camera, rotY);
+
+	//	XMStoreFloat4x4(&m_camera2, temp_camera);
+
+	//	m_camera2._41 = pos.x;
+	//	m_camera2._42 = pos.y;
+	//	m_camera2._43 = pos.z;
+	//}
+
+	// Use last row of the object.model to change the at
 
 	// Setup key presses to adjust Far and Near plane clipping
 	// Have [] control the far plane, and <> control the near plane
 	// perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
-	if (m_kbuttons['G'])
+	if (m_kbuttons[VK_OEM_4])
 	{
 		zFar += zFar_increment * moveSpd;
 
 		UpdatePlanes();
 	}
-
-	if (m_kbuttons['H'])
+	if (m_kbuttons[VK_OEM_6])
 	{
 		zFar -= zFar_increment * moveSpd;
 
@@ -285,14 +307,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 		UpdatePlanes();
 	}
-
 	if (m_kbuttons[VK_OEM_PERIOD])
-	{
-		zNear += zNear_incremenet * moveSpd;
-
-		UpdatePlanes();
-	}
-	if (m_kbuttons[VK_OEM_COMMA])
 	{
 		zNear -= zNear_incremenet * moveSpd;
 
@@ -301,9 +316,35 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 		UpdatePlanes();
 	}
+	if (m_kbuttons[VK_OEM_COMMA])
+	{
+		zNear += zNear_incremenet * moveSpd;
 
+		UpdatePlanes();
+	}
 
 	// Setup the Mouse wheel to do zooms (or arrow keys)
+	// Positive (Mouse Wheel
+
+	if (m_kbuttons[VK_UP])
+	{
+		fovAngleY -= fov_increment;
+
+		if (fovAngleY <= -10.0f)
+			fovAngleY = -10.0f;
+
+		UpdatePlanes();
+	}
+
+	if (m_kbuttons[VK_DOWN])
+	{
+		fovAngleY += fov_increment;
+
+		if (fovAngleY >= 90.0f)
+			fovAngleY = 90.0f;
+
+		UpdatePlanes();
+	}
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)

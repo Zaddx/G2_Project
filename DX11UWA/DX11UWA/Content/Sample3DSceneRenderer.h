@@ -80,6 +80,7 @@ namespace DX11UWA
 		DirectX::XMMATRIX perspectiveMatrix;
 		DirectX::XMMATRIX orientationMatrix;
 		float aspectRatio;
+		float fov;
 		float fovAngleY;
 		float zFar;
 		float zNear;
@@ -87,6 +88,7 @@ namespace DX11UWA
 		// Variables used to increment the far and near planes
 		float zFar_increment = 0.01f;
 		float zNear_incremenet = 0.01f;
+		float fov_increment = 0.01f;
 
 		////////////////////////////////////////////////////////////////
 		//                  BEGIN SKYBOX MODEL STUFF                  //
