@@ -326,22 +326,22 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// Setup the Mouse wheel to do zooms (or arrow keys)
 	// Positive (Mouse Wheel
 
-	if (m_kbuttons[VK_UP])
+	if (m_kbuttons[VK_UP] && fovAngleY != small_zoom_clamp)
 	{
 		fovAngleY -= fov_increment;
 
-		if (fovAngleY <= -10.0f)
-			fovAngleY = -10.0f;
+		if (fovAngleY <= 0.0f)
+			fovAngleY = small_zoom_clamp;
 
 		UpdatePlanes();
 	}
 
-	if (m_kbuttons[VK_DOWN])
+	if (m_kbuttons[VK_DOWN] && fovAngleY != large_zoom_clamp)
 	{
 		fovAngleY += fov_increment;
 
-		if (fovAngleY >= 90.0f)
-			fovAngleY = 90.0f;
+		if (fovAngleY >= large_zoom_clamp)
+			fovAngleY = large_zoom_clamp;
 
 		UpdatePlanes();
 	}

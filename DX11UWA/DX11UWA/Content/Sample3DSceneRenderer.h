@@ -85,6 +85,10 @@ namespace DX11UWA
 		float zFar;
 		float zNear;
 
+		// Variables that will clamp the zooming
+		float small_zoom_clamp = 0.1f;
+		float large_zoom_clamp = 2.5f;
+
 		// Variables used to increment the far and near planes
 		float zFar_increment = 0.01f;
 		float zNear_incremenet = 0.01f;
