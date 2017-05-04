@@ -18,7 +18,7 @@ cbuffer Directional_Light : register(b0)
 //	float4 position_point;
 //	float4 color_point;
 //	float4 radius_point;
-//}
+//} 
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
