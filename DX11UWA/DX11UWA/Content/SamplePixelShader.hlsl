@@ -7,18 +7,18 @@ struct PixelShaderInput
 	float3 norm : NORM;
 };
 
-cbuffer Point_Light : register(b0)
-{
-	float4 position_point;
-	float4 color_point;
-	float4 radius_point;
-}
-
-cbuffer Directional_Light : register(b1)
+cbuffer Directional_Light : register(b0)
 {
 	float4 direction_directional;
 	float4 color_directional;
 }
+
+//cbuffer Point_Light : register(b1)
+//{
+//	float4 position_point;
+//	float4 color_point;
+//	float4 radius_point;
+//}
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -46,7 +46,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	// Point Light
 	{
-		float attenuation;
+		/*float attenuation;
 		float3 lightDirection;
 		float3 result;
 
@@ -63,7 +63,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
 		result = attenuation * lightColor * dot_result;
 
-		overall_result += result;
+		overall_result += result;*/
 	}
 
 	// Spot Light

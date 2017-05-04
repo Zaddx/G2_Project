@@ -140,6 +140,9 @@
     <None Include="Assets\Models\H2_MC.obj">
       <Filter>Assets\Model</Filter>
     </None>
+    <None Include="Assets\Models\H3_Elephant.obj">
+      <Filter>Assets\Model</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

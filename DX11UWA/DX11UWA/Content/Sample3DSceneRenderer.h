@@ -37,6 +37,7 @@ namespace DX11UWA
 	private:
 		void Rotate(float radians);
 		void UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd);
+		void UpdateLights();
 
 	private:
 		// Cached pointer to device resources.
@@ -74,6 +75,12 @@ namespace DX11UWA
 		// Boolean to make camera 2 rotate on a axis
 		bool camera2_auto_rotate = false;
 
+		// Anything for the window
+		DirectX::XMMATRIX perspectiveMatrix;
+		float aspectRatio;
+		float fovAngleY;
+		float zFar;
+		float zNear;
 
 		////////////////////////////////////////////////////////////////
 		//                  BEGIN SKYBOX MODEL STUFF                  //
@@ -100,14 +107,30 @@ namespace DX11UWA
 		////////////////////////////////////////////////////////////////
 
 		////////////////////////////////////////////////////////////////
-		//                  BEGIN ASGARD MODEL STUFF                  //
+		//                 BEGIN ELEPHANT MODEL STUFF                 //
 		////////////////////////////////////////////////////////////////
 		// Master Chief
-		Model chopper_model;
-		ModelViewProjectionConstantBuffer m_constantBufferData_chopper;
+		Model elephant_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_elephant;
+
+		// Lights
+		DirectionalLight floor_directional_light;
+		PointLight floor_point_light;
+		SpotLight floor_spot_light;
+
+		// Light Constant Buffers & Data
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_pointLight;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_directionalLight;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_spotLight;
+
+		// Light Movement Variables
+		float y_inc_dir;
+		float x_inc_point;
+		float x_inc_spot_pos;
+		float z_inc_spot_pos;
+		float x_inc_spot_dir;
 		////////////////////////////////////////////////////////////////
-		//                   END ASGARD MODEL STUFF                   //
+		//                  END ELEPHANT MODEL STUFF                  //
 		////////////////////////////////////////////////////////////////
 	};
 }
-

@@ -66,6 +66,8 @@ bool DX11UWAMain::Render(void)
 
 	// Reset the viewport to target the whole screen.
 	auto viewport = m_deviceResources->GetScreenViewport();
+	viewport.Width = m_deviceResources->GetScreenViewport().Width / 2.0f;
+
 	context->RSSetViewports(1, &viewport);
 
 	// Reset render targets to the screen.
@@ -82,12 +84,14 @@ bool DX11UWAMain::Render(void)
 	// Setup secondary Viewport
 	auto viewport_custom = m_deviceResources->GetScreenViewport();
 	viewport_custom.TopLeftX = m_deviceResources->GetScreenViewport().Width / 2.0f;
+	viewport_custom.Width = m_deviceResources->GetScreenViewport().Width / 2.0f;
+
 
 	context->RSSetViewports(1, &viewport_custom);
 
 	ID3D11RenderTargetView *const targets_custom[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
 	context->OMSetRenderTargets(1, targets_custom, m_deviceResources->GetDepthStencilView());
-	
+
 	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Render the scene objects.

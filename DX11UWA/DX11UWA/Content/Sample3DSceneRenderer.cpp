@@ -29,16 +29,13 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 {
 	Size outputSize = m_deviceResources->GetOutputSize();
-	float aspectRatio = outputSize.Width / outputSize.Height;
-	float fovAngleY = 70.0f * XM_PI / 180.0f;
+	aspectRatio = (outputSize.Width / 2.0f) / outputSize.Height;
+	fovAngleY = 70.0f * (XM_PI / 180.0f);
+	zFar = 0.01f;
+	zNear = 100.0f;
 
 	// This is a simple example of change that can be made when the app is in
 	// portrait or snapped view.
-	if (aspectRatio < 1.0f)
-	{
-		fovAngleY *= 2.0f;
-	}
-
 	// Note that the OrientationTransform3D matrix is post-multiplied here
 	// in order to correctly orient the scene to match the display orientation.
 	// This post-multiplication step is required for any draw calls that are
@@ -46,22 +43,22 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	// this transform should not be applied.
 
 	// This sample makes use of a right-handed coordinate system using row-major matrices.
-	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, 0.01f, 100.0f);
-
+	perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
+			
 	XMFLOAT4X4 orientation = m_deviceResources->GetOrientationTransform3D();
 
 	XMMATRIX orientationMatrix = XMLoadFloat4x4(&orientation);
 
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
-	XMStoreFloat4x4(&m_constantBufferData_chopper.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 5.0f, 0.7f, -1.5f, 0.0f };
+	static const XMVECTORF32 eye = { -15.0f, 30.0f, -0.0f, 0.0f };
 	
-	static const XMVECTORF32 eye2 = { 5.0f, 1.5f, 1.5f, 0.0f };
+	static const XMVECTORF32 eye2 = { -15.0f, 45.0f, 0.0f, 0.0f };
 
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
+	static const XMVECTORF32 at = { 0.0f, 18.0f, 2.5f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
@@ -69,7 +66,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, XMMatrixLookAtLH(eye, at, up));
-	XMStoreFloat4x4(&m_constantBufferData_chopper.view, XMMatrixLookAtLH(eye, at, up));
+	XMStoreFloat4x4(&m_constantBufferData_elephant.view, XMMatrixLookAtLH(eye, at, up));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -89,6 +86,8 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	// Update or move camera here
 	UpdateCamera(timer, 10.0f, 0.75f);
 
+	// Call Update Lights Function
+	// UpdateLights();
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -102,7 +101,7 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.model, identity);
 
 	// Set The model of the asgard base model to the identity matrix
-	XMStoreFloat4x4(&m_constantBufferData_chopper.model, identity);
+	XMStoreFloat4x4(&m_constantBufferData_elephant.model, identity);
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -264,6 +263,20 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	{
 		// Setup the camera to auto rotate 
 	}
+
+	// Setup key presses to adjust Far and Near plane clipping
+	// Have [] control the far plane, and <> control the near plane
+	// perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
+	if (m_kbuttons[VK_OEM_4])
+	{
+
+	}
+	if (m_kbuttons[VK_OEM_6])
+	{
+			
+	}
+
+	// Setup the Mouse wheel to do zooms (or arrow keys)
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -383,6 +396,47 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 #pragma endregion
 
+#pragma region Elephant
+
+	if (!elephant_model._loadingComplete)
+	{
+		return;
+	}
+
+	XMStoreFloat4x4(&m_constantBufferData_elephant.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
+
+	// Setup Vertex Buffer
+	UINT elephant_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT elephant_offset = 0;
+	context->IASetVertexBuffers(0, 1, elephant_model._vertexBuffer.GetAddressOf(), &elephant_stride, &elephant_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(elephant_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetInputLayout(elephant_model._inputLayout.Get());
+
+	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
+
+	// Update subresources for the lights
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
+
+	//Set the light constant buffers to the floor
+	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
+	//context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+
+	// Attach our vertex shader.
+	context->VSSetShader(elephant_model._vertexShader.Get(), nullptr, 0);
+
+	// Attach our pixel shader.
+	context->PSSetShader(elephant_model._pixelShader.Get(), nullptr, 0);
+
+	context->DrawIndexed(elephant_model._indexCount, 0, 0);
+
+#pragma endregion
+
+
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -390,10 +444,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
-	auto loadVSTaskTexture = DX::ReadDataAsync(L"TextureVertexShader.cso");
-	auto loadPSTaskTexture = DX::ReadDataAsync(L"TexturePixelShader.cso");
 	auto loadVSTaskSkybox = DX::ReadDataAsync(L"SkyboxVertexShader.cso");
 	auto loadPSTaskSkybox = DX::ReadDataAsync(L"SkyboxPixelShader.cso");
+	auto loadVSTaskTexture = DX::ReadDataAsync(L"TextureVertexShader.cso");
+	auto loadPSTaskTexture = DX::ReadDataAsync(L"TexturePixelShader.cso");
 
 #pragma region Skybox
 
@@ -439,14 +493,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-50.0f, -50.0f, -50.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-50.0f, -50.0f,  50.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-50.0f,  50.0f, -50.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-50.0f,  50.0f,  50.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(50.0f, -50.0f, -50.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(50.0f, -50.0f,  50.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(50.0f,  50.0f, -50.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(50.0f,  50.0f,  50.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-100.0f, -100.0f, -100.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-100.0f, -100.0f,  100.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-100.0f,  100.0f, -100.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-100.0f,  100.0f,  100.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(100.0f, -100.0f, -100.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(100.0f, -100.0f,  100.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(100.0f,  100.0f, -100.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(100.0f,  100.0f,  100.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -556,6 +610,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			temp.pos.x *= .15f;
 			temp.pos.y *= .15f;
 			temp.pos.z *= .15f;
+
+			// Move the Master Chief Model ontop of the elephant
+			temp.pos.z += 2.5f;
+			temp.pos.y += 13.5f;
 			masterChief_vertices[i] = temp;
 		}
 
@@ -584,6 +642,104 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma endregion
 
+#pragma region Halo Elephant
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTask_Elephant_Model = loadVSTask.then([this](const std::vector<byte>& elephant_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&elephant_fileData[0], elephant_fileData.size(), nullptr, &elephant_model._vertexShader));
+
+		static const D3D11_INPUT_ELEMENT_DESC elephant_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(elephant_vertexDesc, ARRAYSIZE(elephant_vertexDesc), &elephant_fileData[0], elephant_fileData.size(), &elephant_model._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTask_Elephant_Model = loadPSTask.then([this](const std::vector<byte>& elephant_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&elephant_fileData[0], elephant_fileData.size(), nullptr, &elephant_model._pixelShader));
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &elephant_model._constantBuffer));
+	
+		// Create the constant buffers for the lights
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_directionalLight));
+		//DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_pointLight));
+		//DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_spotLight));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createTask_Elephant = (createPSTask_Elephant_Model && createVSTask_Elephant_Model).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionUVNormal> elephant_vertices;
+		std::vector<DirectX::XMFLOAT3> elephant_normals;
+		std::vector<DirectX::XMFLOAT2> elephant_uvs;
+		std::vector<unsigned int> elephant_indices;
+
+		loadOBJ("Assets/Models/H3_Elephant.obj", elephant_vertices, elephant_indices, elephant_normals, elephant_uvs);
+
+		// Scale down the model
+		for (unsigned int i = 0; i < elephant_vertices.size(); i++)
+		{
+			VertexPositionUVNormal temp = elephant_vertices[i];
+
+			// scale down the elephant model by 50%
+			temp.pos.x *= .50f;
+			temp.pos.y *= .50f;
+			temp.pos.z *= .50f;
+			
+			// Set uv's to 0.0f so it displays black
+			/*temp.uv.x = 0.5f;
+			temp.uv.y = 0.1f;
+			temp.uv.z = 0.1f;*/
+
+			elephant_vertices[i] = temp;
+		}
+
+		D3D11_SUBRESOURCE_DATA elephant_vertexBufferData = { 0 };
+		elephant_vertexBufferData.pSysMem = elephant_vertices.data();
+		elephant_vertexBufferData.SysMemPitch = 0;
+		elephant_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC elephant_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * elephant_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&elephant_vertexBufferDesc, &elephant_vertexBufferData, &elephant_model._vertexBuffer));
+
+		elephant_model._indexCount = elephant_indices.size();
+
+		D3D11_SUBRESOURCE_DATA elephant_indexBufferData = { 0 };
+		elephant_indexBufferData.pSysMem = elephant_indices.data();
+		elephant_indexBufferData.SysMemPitch = 0;
+		elephant_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC elephant_indexBufferDesc(sizeof(unsigned int) * elephant_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&elephant_indexBufferDesc, &elephant_indexBufferData, &elephant_model._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createTask_Elephant.then([this]()
+	{
+		elephant_model._loadingComplete = true;
+	});
+
+#pragma endregion
+
+#pragma region Light Initialization
+
+	// Initialize the directional light data
+	floor_directional_light.direction = { 0.0f, 0.0f, 1.0f, 0.0f };
+	floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
+
+	// Initialize the point light data
+	floor_point_light.position = { 0.0f, 0.0f, 0.0f, 0.0f };
+	floor_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
+	floor_point_light.radius.x = 3.0f;
+
+#pragma endregion
+
+
 }
 
 void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
@@ -595,4 +751,22 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 	m_constantBuffer.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+}
+
+void Sample3DSceneRenderer::UpdateLights()
+{
+	// Get the context so I can update the lights
+	auto context = m_deviceResources->GetD3DDeviceContext();
+
+	// Update subresources for the lights
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
+
+
+	// Set the light constant buffers to the floor
+	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
+	//context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+
 }
