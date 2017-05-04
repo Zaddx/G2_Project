@@ -8,6 +8,11 @@ using namespace DX11UWA;
 using namespace DirectX;
 using namespace Windows::Foundation;
 
+static const XMVECTORF32 eye = { -15.0f, 30.0f, -0.0f, 0.0f };
+static const XMVECTORF32 eye2 = { -15.0f, 45.0f, 0.0f, 0.0f };
+static const XMVECTORF32 at = { 0.0f, 18.0f, 2.5f, 0.0f };
+static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -31,8 +36,8 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	Size outputSize = m_deviceResources->GetOutputSize();
 	aspectRatio = (outputSize.Width / 2.0f) / outputSize.Height;
 	fovAngleY = 70.0f * (XM_PI / 180.0f);
-	zFar = 0.01f;
-	zNear = 100.0f;
+	zFar = 100.0f;
+	zNear = 0.01f;
 
 	// This is a simple example of change that can be made when the app is in
 	// portrait or snapped view.
@@ -43,23 +48,20 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	// this transform should not be applied.
 
 	// This sample makes use of a right-handed coordinate system using row-major matrices.
-	perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
+	perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zNear, zFar);
 			
 	XMFLOAT4X4 orientation = m_deviceResources->GetOrientationTransform3D();
 
-	XMMATRIX orientationMatrix = XMLoadFloat4x4(&orientation);
+	orientationMatrix = XMLoadFloat4x4(&orientation);
 
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { -15.0f, 30.0f, -0.0f, 0.0f };
-	
-	static const XMVECTORF32 eye2 = { -15.0f, 45.0f, 0.0f, 0.0f };
 
-	static const XMVECTORF32 at = { 0.0f, 18.0f, 2.5f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+
+	// When key press set the at to the object's position
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
@@ -267,14 +269,39 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// Setup key presses to adjust Far and Near plane clipping
 	// Have [] control the far plane, and <> control the near plane
 	// perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
-	if (m_kbuttons[VK_OEM_4]) 
+	if (m_kbuttons['G'])
 	{
+		zFar += zFar_increment * moveSpd;
 
+		UpdatePlanes();
 	}
-	if (m_kbuttons[VK_OEM_6])
+
+	if (m_kbuttons['H'])
 	{
-			
+		zFar -= zFar_increment * moveSpd;
+
+		if (zFar <= zNear)
+			zFar = zNear + 0.1f;
+
+		UpdatePlanes();
 	}
+
+	if (m_kbuttons[VK_OEM_PERIOD])
+	{
+		zNear += zNear_incremenet * moveSpd;
+
+		UpdatePlanes();
+	}
+	if (m_kbuttons[VK_OEM_COMMA])
+	{
+		zNear -= zNear_incremenet * moveSpd;
+
+		if (zNear <= 0.01f)
+			zNear = 0.01f;
+
+		UpdatePlanes();
+	}
+
 
 	// Setup the Mouse wheel to do zooms (or arrow keys)
 }
@@ -768,5 +795,23 @@ void Sample3DSceneRenderer::UpdateLights()
 	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
 	//context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
 	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+}
 
+void Sample3DSceneRenderer::UpdatePlanes()
+{
+	// This sample makes use of a right-handed coordinate system using row-major matrices.
+	perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zNear, zFar);
+
+	XMFLOAT4X4 orientation = m_deviceResources->GetOrientationTransform3D();
+
+	orientationMatrix = XMLoadFloat4x4(&orientation);
+
+	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
+
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
+	context->UpdateSubresource1(master_chief_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_master_chief, 0, 0, 0);
+	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
 }

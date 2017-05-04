@@ -38,6 +38,7 @@ namespace DX11UWA
 		void Rotate(float radians);
 		void UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd);
 		void UpdateLights();
+		void UpdatePlanes();
 
 	private:
 		// Cached pointer to device resources.
@@ -77,10 +78,15 @@ namespace DX11UWA
 
 		// Anything for the window
 		DirectX::XMMATRIX perspectiveMatrix;
+		DirectX::XMMATRIX orientationMatrix;
 		float aspectRatio;
 		float fovAngleY;
 		float zFar;
 		float zNear;
+
+		// Variables used to increment the far and near planes
+		float zFar_increment = 0.01f;
+		float zNear_incremenet = 0.01f;
 
 		////////////////////////////////////////////////////////////////
 		//                  BEGIN SKYBOX MODEL STUFF                  //

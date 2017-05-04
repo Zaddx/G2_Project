@@ -2,6 +2,8 @@
 #include <vector>
 #include "Content\ShaderStructures.h"
 
+using namespace DirectX;
+
 #define EPSILON 0.00001f
 
 float Clamp(float _val, float _max, float _min);
