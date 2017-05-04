@@ -267,7 +267,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// Setup key presses to adjust Far and Near plane clipping
 	// Have [] control the far plane, and <> control the near plane
 	// perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, zFar, zNear);
-	if (m_kbuttons[VK_OEM_4])
+	if (m_kbuttons[VK_OEM_4]) 
 	{
 
 	}
