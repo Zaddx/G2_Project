@@ -42,7 +42,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	// Directional Light
 	{
-		/*float3 lightDirection = -direction_directional.xyz;
+		float3 lightDirection = -direction_directional.xyz;
 		float3 lightColor = color_directional.xyz;
 
 		float dot_result;
@@ -51,12 +51,12 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		dot_result = saturate(dot(lightDirection, surfaceNormal));
 		result = dot_result * lightColor * surfaceColor;
 
-		overall_result = result;*/
+		overall_result = result;
 	}
 
 	// Point Light
 	{
-		/*float attenuation;
+		float attenuation;
 		float3 lightDirection;
 		float3 result;
 
@@ -73,7 +73,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
 		result = attenuation * lightColor * dot_result;
 
-		overall_result += result;*/
+		overall_result += result;
 	}
 	 
 	// Spot Light
@@ -101,7 +101,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio));
 		result = spotFactor * attenuation * lightColor * surfaceColor;
 
-		overall_result = result;
+		overall_result += result;
 	}
 
 	return float4(overall_result, 1.0f);
