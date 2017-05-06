@@ -105,6 +105,21 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	elephant_directional_light.direction.y += y_inc_dir;
 
+	x_inc_point = -timer.GetElapsedSeconds();
+	float point_light_boundaries = 20.0f;
+
+	if (elephant_point_light.position.y >= point_light_boundaries)
+	{
+		elephant_point_light.position.y = point_light_boundaries;
+		x_inc_point *= -1.0f;
+	}
+	if (elephant_point_light.position.y <= -point_light_boundaries)
+	{
+		elephant_point_light.position.y = -point_light_boundaries;
+		x_inc_point *= -1.0f;
+	}
+
+	elephant_point_light.position.y += x_inc_point;
 
 	// Call Update Lights Function
 	UpdateLights();
