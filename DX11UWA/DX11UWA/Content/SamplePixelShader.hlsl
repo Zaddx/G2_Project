@@ -20,6 +20,16 @@ cbuffer Point_Light : register(b1)
 	float4 radius_point;
 } 
 
+cbuffer Spot_Light : register(b2)
+{
+	float4 position_spot;
+	float4 color_spot;
+	float4 cone_direction;
+	float4 cone_ratio;
+	float4 inner_cone_ratio;
+	float4 outer_cone_ratio;
+}
+
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
 {
@@ -32,7 +42,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	// Directional Light
 	{
-		float3 lightDirection = -direction_directional.xyz;
+		/*float3 lightDirection = -direction_directional.xyz;
 		float3 lightColor = color_directional.xyz;
 
 		float dot_result;
@@ -41,12 +51,12 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		dot_result = saturate(dot(lightDirection, surfaceNormal));
 		result = dot_result * lightColor * surfaceColor;
 
-		overall_result = result;
+		overall_result = result;*/
 	}
 
 	// Point Light
 	{
-		float attenuation;
+		/*float attenuation;
 		float3 lightDirection;
 		float3 result;
 
@@ -63,10 +73,36 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
 		result = attenuation * lightColor * dot_result;
 
-		overall_result += result;
+		overall_result += result;*/
 	}
 	 
 	// Spot Light
+	{
+		float3 lightDir;
+		float3 result;
+
+		float3 lightPos = position_spot.xyz;
+		float3 lightColor = color_spot.xyz;
+		float3 coneDir = cone_direction.xyz;
+
+		float surfaceRatio;
+		float spotFactor;
+		float lightRatio;
+		float attenuation;
+
+		float coneRatio = cone_ratio.x;
+		float innerConeRatio = inner_cone_ratio.x;
+		float outerConeRatio = outer_cone_ratio.x;
+
+		lightDir = normalize((lightPos - surfacePosition));
+		surfaceRatio = saturate(dot(-lightDir, coneDir));
+		spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
+		lightRatio = saturate(dot(lightDir, surfaceNormal));
+		attenuation = 1.0f - saturate((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio));
+		result = spotFactor * attenuation * lightColor * surfaceColor;
+
+		overall_result = result;
+	}
 
 	return float4(overall_result, 1.0f);
 }

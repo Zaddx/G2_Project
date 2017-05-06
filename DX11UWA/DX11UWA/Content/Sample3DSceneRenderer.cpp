@@ -121,6 +121,48 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	elephant_point_light.position.y += x_inc_point;
 
+	x_inc_spot_pos = -timer.GetElapsedSeconds();
+	z_inc_spot_pos = timer.GetElapsedSeconds();
+	x_inc_spot_dir = -timer.GetElapsedSeconds();
+	float spot_light_boundaries = 20.0f;
+
+	if (elephant_spot_light.position.y >= spot_light_boundaries)
+	{
+		elephant_spot_light.position.y = spot_light_boundaries;
+		x_inc_spot_pos *= -1.0f;
+	}
+	if (elephant_spot_light.position.y <= -spot_light_boundaries)
+	{
+		elephant_spot_light.position.y = -spot_light_boundaries;
+		x_inc_spot_pos *= -1.0f;
+	}
+
+	if (elephant_spot_light.position.z >= spot_light_boundaries)
+	{
+		elephant_spot_light.position.z = spot_light_boundaries;
+		z_inc_spot_pos *= -1.0f;
+	}
+	if (elephant_spot_light.position.z <= -spot_light_boundaries)
+	{
+		elephant_spot_light.position.z = -spot_light_boundaries;
+		z_inc_spot_pos *= -1.0f;
+	}
+
+	if (elephant_spot_light.cone_direction.y >= spot_light_boundaries)
+	{
+		elephant_spot_light.cone_direction.y = spot_light_boundaries;
+		x_inc_spot_dir *= -1.0f;
+	}
+	if (elephant_spot_light.cone_direction.y <= -spot_light_boundaries)
+	{
+		elephant_spot_light.cone_direction.y = -spot_light_boundaries;
+		x_inc_spot_dir *= -1.0f;
+	}
+
+	elephant_spot_light.position.y += x_inc_spot_pos;
+	//elephant_spot_light.position.z += z_inc_spot_pos;
+	elephant_spot_light.cone_direction.y += x_inc_spot_dir;
+
 	// Call Update Lights Function
 	UpdateLights();
 }
@@ -520,12 +562,12 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	// Update subresources for the lights
 	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &elephant_directional_light, 0, 0, 0);
 	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &elephant_point_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
 
 	//Set the light constant buffers to the floor
 	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
 	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
-	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our vertex shader.
 	context->VSSetShader(elephant_model._vertexShader.Get(), nullptr, 0);
@@ -536,7 +578,6 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	context->DrawIndexed(elephant_model._indexCount, 0, 0);
 
 #pragma endregion
-
 
 }
 
@@ -771,7 +812,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Create the constant buffers for the lights
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_directionalLight));
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_pointLight));
-		//DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_spotLight));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_spotLight));
 	});
 
 	// Once both shaders are loaded, create the mesh.
@@ -838,6 +879,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	elephant_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
 	elephant_point_light.radius.x = 20.0f;
 
+	// Initialize the spot light data
+	elephant_spot_light.position = { 3.0f, 19.0f, -10.0f, 0.0f };
+	elephant_spot_light.color = { 1.0f, 0.945f, 0.878f, 0.0f };
+	elephant_spot_light.cone_direction = { 0.0f, 13.5f, 0.0f, 0.0f };
+	elephant_spot_light.cone_ratio.x = 0.5f;
+	elephant_spot_light.inner_cone_ratio.x = 0.96f;
+	elephant_spot_light.outer_cone_ratio.x = 0.95f;
+
 #pragma endregion
 
 
@@ -862,13 +911,13 @@ void Sample3DSceneRenderer::UpdateLights()
 	// Update subresources for the lights
 	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &elephant_directional_light, 0, 0, 0);
 	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &elephant_point_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
 
 
 	// Set the light constant buffers to the floor
 	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
 	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
-	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
 }
 
 void Sample3DSceneRenderer::UpdatePlanes()
