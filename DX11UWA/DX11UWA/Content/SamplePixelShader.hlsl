@@ -65,7 +65,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 		overall_result += result;
 	}
-
+	 
 	// Spot Light
 
 	return float4(overall_result, 1.0f);
