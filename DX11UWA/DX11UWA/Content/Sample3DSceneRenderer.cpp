@@ -88,8 +88,26 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	// Update or move camera here
 	UpdateCamera(timer, 10.0f, 0.75f);
 
+	// Update Lights
+	y_inc_dir = -timer.GetElapsedSeconds();
+	float directional_light_boundaries = 5.0f;
+
+	if (elephant_directional_light.direction.y >= directional_light_boundaries)
+	{
+		elephant_directional_light.direction.y = directional_light_boundaries;
+		y_inc_dir *= -1.0f;
+	}
+	if (elephant_directional_light.direction.y <= -directional_light_boundaries)
+	{
+		elephant_directional_light.direction.y = -directional_light_boundaries;
+		y_inc_dir *= -1.0f;
+	}
+
+	elephant_directional_light.direction.y += y_inc_dir;
+
+
 	// Call Update Lights Function
-	// UpdateLights();
+	UpdateLights();
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -485,13 +503,13 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
 
 	// Update subresources for the lights
-	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &elephant_directional_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &elephant_point_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
 
 	//Set the light constant buffers to the floor
 	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
-	//context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
 	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our vertex shader.
@@ -737,7 +755,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	
 		// Create the constant buffers for the lights
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_directionalLight));
-		//DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_pointLight));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_pointLight));
 		//DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_constantBuffer_spotLight));
 	});
 
@@ -762,9 +780,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			temp.pos.z *= .50f;
 			
 			// Set uv's to 0.0f so it displays black
-			/*temp.uv.x = 0.5f;
-			temp.uv.y = 0.1f;
-			temp.uv.z = 0.1f;*/
+			temp.uv.x = 0.0f;
+			temp.uv.y = 0.25f;
+			temp.uv.z = 0.0f;
 
 			elephant_vertices[i] = temp;
 		}
@@ -797,13 +815,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 #pragma region Light Initialization
 
 	// Initialize the directional light data
-	floor_directional_light.direction = { 0.0f, 0.0f, 1.0f, 0.0f };
-	floor_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
+	elephant_directional_light.direction = { 0.0f, 2.0f, 1.0f, 0.0f };
+	elephant_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
 
 	// Initialize the point light data
-	floor_point_light.position = { 0.0f, 0.0f, 0.0f, 0.0f };
-	floor_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
-	floor_point_light.radius.x = 3.0f;
+	elephant_point_light.position = { 3.0f, 15.0f, 0.0f, 0.0f };
+	elephant_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
+	elephant_point_light.radius.x = 20.0f;
 
 #pragma endregion
 
@@ -827,14 +845,14 @@ void Sample3DSceneRenderer::UpdateLights()
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
 	// Update subresources for the lights
-	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &floor_directional_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &floor_point_light, 0, 0, 0);
-	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &floor_spot_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_directionalLight.Get(), 0, NULL, &elephant_directional_light, 0, 0, 0);
+	context->UpdateSubresource1(m_constantBuffer_pointLight.Get(), 0, NULL, &elephant_point_light, 0, 0, 0);
+	//context->UpdateSubresource1(m_constantBuffer_spotLight.Get(), 0, NULL, &elephant_spot_light, 0, 0, 0);
 
 
 	// Set the light constant buffers to the floor
 	context->PSSetConstantBuffers1(0, 1, m_constantBuffer_directionalLight.GetAddressOf(), nullptr, nullptr);
-	//context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
+	context->PSSetConstantBuffers1(1, 1, m_constantBuffer_pointLight.GetAddressOf(), nullptr, nullptr);
 	//context->PSSetConstantBuffers1(2, 1, m_constantBuffer_spotLight.GetAddressOf(), nullptr, nullptr);
 }
 

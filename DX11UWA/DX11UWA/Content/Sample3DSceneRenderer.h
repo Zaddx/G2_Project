@@ -126,9 +126,9 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer m_constantBufferData_elephant;
 
 		// Lights
-		DirectionalLight floor_directional_light;
-		PointLight floor_point_light;
-		SpotLight floor_spot_light;
+		DirectionalLight elephant_directional_light;
+		PointLight elephant_point_light;
+		SpotLight elephant_spot_light;
 
 		// Light Constant Buffers & Data
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_pointLight;

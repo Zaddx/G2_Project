@@ -13,12 +13,12 @@ cbuffer Directional_Light : register(b0)
 	float4 color_directional;
 }
 
-//cbuffer Point_Light : register(b1)
-//{
-//	float4 position_point;
-//	float4 color_point;
-//	float4 radius_point;
-//} 
+cbuffer Point_Light : register(b1)
+{
+	float4 position_point;
+	float4 color_point;
+	float4 radius_point;
+} 
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -32,7 +32,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	// Directional Light
 	{
-		float3 lightDirection = -direction_directional.xyz;
+	/*	float3 lightDirection = -direction_directional.xyz;
 		float3 lightColor = color_directional.xyz;
 
 		float dot_result;
@@ -41,12 +41,12 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		dot_result = saturate(dot(lightDirection, surfaceNormal));
 		result = dot_result * lightColor * surfaceColor;
 
-		overall_result = result;
+		overall_result = result;*/
 	}
 
 	// Point Light
 	{
-		/*float attenuation;
+		float attenuation;
 		float3 lightDirection;
 		float3 result;
 
@@ -63,7 +63,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
 		result = attenuation * lightColor * dot_result;
 
-		overall_result += result;*/
+		overall_result = result;
 	}
 
 	// Spot Light
