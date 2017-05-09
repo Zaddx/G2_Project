@@ -137,6 +137,8 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_spotLight;
 
 		// Light Movement Variables
+		DirectX::XMFLOAT4 lightColor_Directional, lightColor_Point, lightColor_Spot;
+		bool firstRun = true;
 		//static float y_inc_dir;
 		//float x_inc_point;
 		//float x_inc_spot_pos;

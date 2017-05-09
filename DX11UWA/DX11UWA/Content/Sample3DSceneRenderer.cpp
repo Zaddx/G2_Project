@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "Sample3DSceneRenderer.h"
-
 #include "..\Common\DirectXHelper.h"
 
+#include <DirectXColors.h>
 using namespace DX11UWA;
 
 using namespace DirectX;
@@ -214,7 +214,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 	if (m_currMousePos)
 	{
-		if (m_currMousePos->Properties->IsRightButtonPressed && m_prevMousePos)
+		if (m_currMousePos->Properties->IsLeftButtonPressed && m_prevMousePos)
 		{
 			float dx = m_currMousePos->Position.X - m_prevMousePos->Position.X;
 			float dy = m_currMousePos->Position.Y - m_prevMousePos->Position.Y;
@@ -287,7 +287,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 	if (m_currMousePos2)
 	{
-		if (m_currMousePos2->Properties->IsLeftButtonPressed && m_prevMousePos2)
+		if (m_currMousePos2->Properties->IsRightButtonPressed && m_prevMousePos2)
 		{
 			float dx = m_currMousePos2->Position.X - m_prevMousePos2->Position.X;
 			float dy = m_currMousePos2->Position.Y - m_prevMousePos2->Position.Y;
@@ -443,9 +443,9 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	{
 		// Switch the light to 100W Tungsten Light
 		a2 = 0.0f;
-		r2 = 255.0f;
-		g2 = 214.0f;
-		b2 = 170.0f;
+		r2 = 64.0f;
+		g2 = 156.0f;
+		b2 = 255.0f;
 	}
 
 	// To change Spot Light

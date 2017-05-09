@@ -38,7 +38,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	float3 surfacePosition = input.wpos;
 	float3 surfaceNormal = input.norm;
-	float3 surfaceColor = input.uv;
+	float3 surfaceColor = float3(1.0f, 1.0f, 1.0f);
 
 	// Directional Light
 	{
@@ -53,7 +53,6 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 		overall_result = result;
 	}
-
 	// Point Light
 	{
 		float attenuation;
