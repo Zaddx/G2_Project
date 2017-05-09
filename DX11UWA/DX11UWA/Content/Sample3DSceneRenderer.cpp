@@ -102,7 +102,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	static float x_inc_point = -timer.GetElapsedSeconds();
 	float point_light_boundaries_positive = 20.0f;
-	float point_light_boundaries_negative = -5.0f;
+	float point_light_boundaries_negative = -3.0f;
 
 	if (elephant_point_light.position.y > point_light_boundaries_positive)
 	{
@@ -117,29 +117,30 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	elephant_point_light.position.y += x_inc_point;
 
-	static float y_inc_spot_pos = -timer.GetElapsedSeconds();
+	static float y_inc_spot_pos = timer.GetElapsedSeconds();
 	static float y_inc_spot_dir = -timer.GetElapsedSeconds();
-	float spot_light_boundaries = 20.0f;
+	float spot_light_boundaries_positive = 20.0f;
+	float spot_light_boundaries_negatiave = -3.0f;
 
-	if (elephant_spot_light.position.y > spot_light_boundaries)
+	if (elephant_spot_light.position.y > spot_light_boundaries_positive)
 	{
-		elephant_spot_light.position.y = spot_light_boundaries;
+		elephant_spot_light.position.y = spot_light_boundaries_positive;
 		y_inc_spot_pos *= -1.0f;
 	}
-	if (elephant_spot_light.position.y < -spot_light_boundaries)
+	if (elephant_spot_light.position.y < spot_light_boundaries_negatiave)
 	{
-		elephant_spot_light.position.y = -spot_light_boundaries;
+		elephant_spot_light.position.y = spot_light_boundaries_negatiave;
 		y_inc_spot_pos *= -1.0f;
 	}
 
-	if (elephant_spot_light.cone_direction.y > spot_light_boundaries)
+	if (elephant_spot_light.cone_direction.y > spot_light_boundaries_positive)
 	{
-		elephant_spot_light.cone_direction.y = spot_light_boundaries;
+		elephant_spot_light.cone_direction.y = spot_light_boundaries_positive;
 		y_inc_spot_dir *= -1.0f;
 	}
-	if (elephant_spot_light.cone_direction.y < -spot_light_boundaries)
+	if (elephant_spot_light.cone_direction.y < spot_light_boundaries_negatiave)
 	{
-		elephant_spot_light.cone_direction.y = -spot_light_boundaries;
+		elephant_spot_light.cone_direction.y = spot_light_boundaries_negatiave;
 		y_inc_spot_dir *= -1.0f;
 	}
 
@@ -372,6 +373,8 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		UpdatePlanes();
 	}
 
+#pragma region Color Changing
+
 	// Setup key presses to change directional light color
 	DirectX::XMFLOAT4 lightColor_Directional, lightColor_Point, lightColor_Spot;
 
@@ -380,7 +383,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	static float r = 255.0f;
 	static float g = 197.0f;
 	static float b = 143.0f;
-	
+
 	// Point Light Values
 	static float a2 = 0.0f;
 	static float r2 = 201.0f;
@@ -490,7 +493,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	lightColor_Directional = { (r / 255.0f), (g / 255.0f), (b / 255.0f), a };
 	lightColor_Point = { (r2 / 255.0f), (g2 / 255.0f), (b2 / 255.0f), a2 };
 	lightColor_Spot = { (r3 / 255.0f), (g3 / 255.0f), (b3 / 255.0f), a3 };
-	
+
 	// Set the new color to the lights
 	elephant_directional_light.color = lightColor_Directional;
 	elephant_point_light.color = lightColor_Point;
@@ -498,6 +501,10 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 	// Update lights
 	UpdateLights();
+
+#pragma endregion
+
+
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
