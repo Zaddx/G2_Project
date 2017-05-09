@@ -451,6 +451,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// To change Spot Light
 	if (m_kbuttons[VK_NUMPAD7])
 	{
+		// Switch the light to Clear Blue Sky Light
 		a3 = 0.0f;
 		r3 = 64.0f;
 		g3 = 156.0f;
@@ -458,6 +459,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 	if (m_kbuttons[VK_NUMPAD8])
 	{
+		// Switch the light to Cool White Flurescent Light
 		a3 = 0.0f;
 		r3 = 212.0f;
 		g3 = 235.0f;
@@ -465,6 +467,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 	if (m_kbuttons[VK_NUMPAD9])
 	{
+		// Switch the light to High Pressure Sodium Light
 		a3 = 0.0f;
 		r3 = 255.0f;
 		g3 = 183.0f;
