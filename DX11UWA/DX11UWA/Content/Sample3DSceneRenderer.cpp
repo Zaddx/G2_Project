@@ -511,8 +511,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 		return;
 	}
 
-	ID3D11ShaderResourceView** texViews[] = { masterChief_meshSRV.GetAddressOf() };
-	context->PSSetShaderResources(0, 1, *texViews);
+	ID3D11ShaderResourceView* texViews[] = { masterChief_meshSRV, masterChief_meshSRV2 };
+	context->PSSetShaderResources(0, 2, texViews);
 
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
 
@@ -701,13 +701,20 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	context->GetDevice(&device);
 
 	const char *path = "Assets/Textures/masterchief2.dds";
+	const char *path2 = "Assets/Textures/masterchief_color.dds";
+
 
 	size_t pathSize = strlen(path) + 1;
 	wchar_t *wc = new wchar_t[pathSize];
 	mbstowcs(&wc[0], path, pathSize);
 
+	size_t pathSize2 = strlen(path2) + 1;
+	wchar_t *wc2 = new wchar_t[pathSize2];
+	mbstowcs(&wc2[0], path2, pathSize2);
+	
 	HRESULT hr;
 	hr = CreateDDSTextureFromFile(device, wc, &masterChief_texture, &masterChief_meshSRV);
+	hr = CreateDDSTextureFromFile(device, wc2, &masterChief_texture2, &masterChief_meshSRV2);
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask_Master_Chief_Model = loadVSTaskTexture.then([this](const std::vector<byte>& masterChief_fileData)

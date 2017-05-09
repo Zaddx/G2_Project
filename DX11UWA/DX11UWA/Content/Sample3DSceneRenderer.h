@@ -112,8 +112,10 @@ namespace DX11UWA
 		ModelViewProjectionConstantBuffer m_constantBufferData_master_chief;
 
 		// Texture Variables
-		Microsoft::WRL::ComPtr<ID3D11Resource> masterChief_texture;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> masterChief_meshSRV;
+		ID3D11Resource* masterChief_texture;
+		ID3D11ShaderResourceView* masterChief_meshSRV;
+		ID3D11Resource* masterChief_texture2;
+		ID3D11ShaderResourceView* masterChief_meshSRV2;
 		////////////////////////////////////////////////////////////////
 		//                     END MC MODEL STUFF                     //
 		////////////////////////////////////////////////////////////////
