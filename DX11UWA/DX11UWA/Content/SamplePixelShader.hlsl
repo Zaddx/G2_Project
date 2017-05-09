@@ -71,7 +71,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 		float dot_result = saturate(dot(lightDirection, surfaceNormal));
 
 		attenuation = 1.0f - saturate(light_minus_surface_length / radius_point.x);
-		result = attenuation * lightColor * dot_result;
+		result = attenuation * lightColor * dot_result * surfaceColor;
 
 		overall_result += result;
 	}
@@ -96,10 +96,9 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 		lightDir = normalize((lightPos - surfacePosition));
 		surfaceRatio = saturate(dot(-lightDir, coneDir));
-		spotFactor = (surfaceRatio > coneRatio) ? 1 : 0;
 		lightRatio = saturate(dot(lightDir, surfaceNormal));
 		attenuation = 1.0f - saturate((innerConeRatio - surfaceRatio) / (innerConeRatio - outerConeRatio));
-		result = spotFactor * attenuation * lightColor * surfaceColor;
+		result = lightRatio * attenuation * lightColor * surfaceColor;
 
 		overall_result += result;
 	}

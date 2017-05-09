@@ -35,9 +35,6 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 {
 	Size outputSize = m_deviceResources->GetOutputSize();
 	aspectRatio = (outputSize.Width / 2.0f) / outputSize.Height;
-	fovAngleY = 70.0f * (XM_PI / 180.0f);
-	zFar = 100.0f;
-	zNear = 0.01f;
 
 	// This is a simple example of change that can be made when the app is in
 	// portrait or snapped view.
@@ -328,38 +325,6 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		m_prevMousePos2 = m_currMousePos2;
 	}
 
-	// Setup key press for Camera 2 auto rotation
-	// Once, key is pressed auto rotate != auto rotate
-	// Then, set the camera to rotate, look at currMousePos for help
-	//if (m_kbuttons['H'])
-	//	camera2_auto_rotate != camera2_auto_rotate;
-
-	//if (camera2_auto_rotate)
-	//{
-	//	// Setup the camera to auto rotate 
-	//	float dx = m_currMousePos2->Position.X - m_prevMousePos2->Position.X;
-	//	float dy = m_currMousePos2->Position.Y - m_prevMousePos2->Position.Y;
-
-	//	XMFLOAT4 pos = XMFLOAT4(m_camera2._41, m_camera2._42, m_camera2._43, m_camera2._44);
-
-	//	m_camera2._41 = 0;
-	//	m_camera2._42 = 0;
-	//	m_camera2._43 = 0;
-
-	//	XMMATRIX rotX = XMMatrixRotationX(dy * rotSpd * delta_time);
-	//	XMMATRIX rotY = XMMatrixRotationY(dx * rotSpd * delta_time);
-
-	//	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera2);
-	//	temp_camera = XMMatrixMultiply(rotX, temp_camera);
-	//	temp_camera = XMMatrixMultiply(temp_camera, rotY);
-
-	//	XMStoreFloat4x4(&m_camera2, temp_camera);
-
-	//	m_camera2._41 = pos.x;
-	//	m_camera2._42 = pos.y;
-	//	m_camera2._43 = pos.z;
-	//}
-
 	// Use last row of the object.model to change the at
 
 	// Setup key presses to adjust Far and Near plane clipping
@@ -397,7 +362,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 
 	// Setup the Mouse wheel to do zooms (or arrow keys)
-	// Positive (Mouse Wheel
+	// Positive (Mouse Wheel up)
 
 	if (m_kbuttons[VK_UP] && fovAngleY != small_zoom_clamp)
 	{
@@ -418,6 +383,34 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 		UpdatePlanes();
 	}
+
+	// Setup key presses to change directional light color
+	DirectX::XMFLOAT4 lightColor;
+	float a = 0.0f;
+	float r = 255.0f;
+	float g = 197.0f;
+	float b = 143.0f;
+
+	if (m_kbuttons[VK_NUMPAD1])
+	{
+		// Switch the light to Candle Light
+		a = 0.0f;
+		r = 255.0f;
+		g = 147.0f;
+		b = 41.0f;
+	}
+	if (m_kbuttons[VK_NUMPAD2])
+	{
+		// Switch the light to Carbon Arc Light
+		a = 0.0f;
+		r = 255.0f;
+		g = 250.0f;
+		b = 244.0f;
+	}
+
+	lightColor = { (r / 255.0f), (g / 255.0f), (b / 255.0f), a };
+	elephant_directional_light.color = lightColor;
+	UpdateLights();
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -841,9 +834,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			temp.pos.z *= .50f;
 			
 			// Set uv's to 0.0f so it displays black
-			temp.uv.x = 0.0f;
-			temp.uv.y = 0.25f;
-			temp.uv.z = 0.0f;
+			temp.uv.x = 1.0f;
+			temp.uv.y = 1.0f;
+			temp.uv.z = 1.0f;
 
 			elephant_vertices[i] = temp;
 		}
@@ -877,17 +870,17 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	// Initialize the directional light data
 	elephant_directional_light.direction = { 0.0f, 2.0f, 1.0f, 0.0f };
-	elephant_directional_light.color = { 0.250980f , 0.611764f, 1.0f, 0.0f };
+	elephant_directional_light.color = { (255.0f / 255.0f) , (197.0f / 255.0f), (143.0f / 255.0f), 0.0f };
 
 	// Initialize the point light data
 	elephant_point_light.position = { 3.0f, 15.0f, 0.0f, 0.0f };
-	elephant_point_light.color = { 0.788f, 0.886f, 1.0f, 0.0f };
+	elephant_point_light.color = { (201.0f / 255.0f), (226.0f / 255.0f), (255.0f / 255.0f), 0.0f };
 	elephant_point_light.radius.x = 20.0f;
 
 	// Initialize the spot light data
 	elephant_spot_light.position = { 3.0f, 19.0f, -10.0f, 0.0f };
-	elephant_spot_light.color = { 1.0f, 0.945f, 0.878f, 0.0f };
-	elephant_spot_light.cone_direction = { 0.0f, 13.5f, 0.0f, 0.0f };
+	elephant_spot_light.color = { (167.0f / 255.0f), (0.0f / 255.0f), (255.0f / 255.0f), 0.0f };
+	elephant_spot_light.cone_direction = { 0.0f, 13.5f, 0.0f, 0.0f };	// Subtract From masterchief postion
 	elephant_spot_light.cone_ratio.x = 0.5f;
 	elephant_spot_light.inner_cone_ratio.x = 0.96f;
 	elephant_spot_light.outer_cone_ratio.x = 0.95f;

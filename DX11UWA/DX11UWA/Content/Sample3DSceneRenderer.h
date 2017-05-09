@@ -80,10 +80,9 @@ namespace DX11UWA
 		DirectX::XMMATRIX perspectiveMatrix;
 		DirectX::XMMATRIX orientationMatrix;
 		float aspectRatio;
-		float fov;
-		float fovAngleY;
-		float zFar;
-		float zNear;
+		float fovAngleY = 70.0f * (XM_PI / 180.0f);
+		float zFar = 175.0f;
+		float zNear = 0.01f;
 
 		// Variables that will clamp the zooming
 		float small_zoom_clamp = 0.1f;
