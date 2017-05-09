@@ -84,15 +84,15 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	UpdateCamera(timer, 10.0f, 0.75f);
 
 	// Update Lights
-	y_inc_dir = -timer.GetElapsedSeconds();
+	static float y_inc_dir = -timer.GetElapsedSeconds();
 	float directional_light_boundaries = 5.0f;
 
-	if (elephant_directional_light.direction.y >= directional_light_boundaries)
+	if (elephant_directional_light.direction.y > directional_light_boundaries)
 	{
 		elephant_directional_light.direction.y = directional_light_boundaries;
 		y_inc_dir *= -1.0f;
 	}
-	if (elephant_directional_light.direction.y <= -directional_light_boundaries)
+	if (elephant_directional_light.direction.y < -directional_light_boundaries)
 	{
 		elephant_directional_light.direction.y = -directional_light_boundaries;
 		y_inc_dir *= -1.0f;
@@ -100,63 +100,51 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	elephant_directional_light.direction.y += y_inc_dir;
 
-	x_inc_point = -timer.GetElapsedSeconds();
-	float point_light_boundaries = 20.0f;
+	static float x_inc_point = -timer.GetElapsedSeconds();
+	float point_light_boundaries_positive = 20.0f;
+	float point_light_boundaries_negative = -5.0f;
 
-	if (elephant_point_light.position.y >= point_light_boundaries)
+	if (elephant_point_light.position.y > point_light_boundaries_positive)
 	{
-		elephant_point_light.position.y = point_light_boundaries;
+		elephant_point_light.position.y = point_light_boundaries_positive;
 		x_inc_point *= -1.0f;
 	}
-	if (elephant_point_light.position.y <= -point_light_boundaries)
+	if (elephant_point_light.position.y < point_light_boundaries_negative)
 	{
-		elephant_point_light.position.y = -point_light_boundaries;
+		elephant_point_light.position.y = point_light_boundaries_negative;
 		x_inc_point *= -1.0f;
 	}
 
 	elephant_point_light.position.y += x_inc_point;
 
-	x_inc_spot_pos = -timer.GetElapsedSeconds();
-	z_inc_spot_pos = timer.GetElapsedSeconds();
-	x_inc_spot_dir = -timer.GetElapsedSeconds();
+	static float y_inc_spot_pos = -timer.GetElapsedSeconds();
+	static float y_inc_spot_dir = -timer.GetElapsedSeconds();
 	float spot_light_boundaries = 20.0f;
 
-	if (elephant_spot_light.position.y >= spot_light_boundaries)
+	if (elephant_spot_light.position.y > spot_light_boundaries)
 	{
 		elephant_spot_light.position.y = spot_light_boundaries;
-		x_inc_spot_pos *= -1.0f;
+		y_inc_spot_pos *= -1.0f;
 	}
-	if (elephant_spot_light.position.y <= -spot_light_boundaries)
+	if (elephant_spot_light.position.y < -spot_light_boundaries)
 	{
 		elephant_spot_light.position.y = -spot_light_boundaries;
-		x_inc_spot_pos *= -1.0f;
+		y_inc_spot_pos *= -1.0f;
 	}
 
-	if (elephant_spot_light.position.z >= spot_light_boundaries)
-	{
-		elephant_spot_light.position.z = spot_light_boundaries;
-		z_inc_spot_pos *= -1.0f;
-	}
-	if (elephant_spot_light.position.z <= -spot_light_boundaries)
-	{
-		elephant_spot_light.position.z = -spot_light_boundaries;
-		z_inc_spot_pos *= -1.0f;
-	}
-
-	if (elephant_spot_light.cone_direction.y >= spot_light_boundaries)
+	if (elephant_spot_light.cone_direction.y > spot_light_boundaries)
 	{
 		elephant_spot_light.cone_direction.y = spot_light_boundaries;
-		x_inc_spot_dir *= -1.0f;
+		y_inc_spot_dir *= -1.0f;
 	}
-	if (elephant_spot_light.cone_direction.y <= -spot_light_boundaries)
+	if (elephant_spot_light.cone_direction.y < -spot_light_boundaries)
 	{
 		elephant_spot_light.cone_direction.y = -spot_light_boundaries;
-		x_inc_spot_dir *= -1.0f;
+		y_inc_spot_dir *= -1.0f;
 	}
 
-	elephant_spot_light.position.y += x_inc_spot_pos;
-	//elephant_spot_light.position.z += z_inc_spot_pos;
-	elephant_spot_light.cone_direction.y += x_inc_spot_dir;
+	elephant_spot_light.position.y += y_inc_spot_pos;
+	elephant_spot_light.cone_direction.y += y_inc_spot_dir;
 
 	// Call Update Lights Function
 	UpdateLights();

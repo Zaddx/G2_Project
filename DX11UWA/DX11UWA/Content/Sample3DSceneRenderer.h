@@ -137,11 +137,11 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer_spotLight;
 
 		// Light Movement Variables
-		float y_inc_dir;
-		float x_inc_point;
-		float x_inc_spot_pos;
-		float z_inc_spot_pos;
-		float x_inc_spot_dir;
+		//static float y_inc_dir;
+		//float x_inc_point;
+		//float x_inc_spot_pos;
+		//float z_inc_spot_pos;
+		//float x_inc_spot_dir;
 		////////////////////////////////////////////////////////////////
 		//                  END ELEPHANT MODEL STUFF                  //
 		////////////////////////////////////////////////////////////////
