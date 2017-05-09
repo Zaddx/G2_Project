@@ -373,12 +373,27 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 
 	// Setup key presses to change directional light color
-	DirectX::XMFLOAT4 lightColor;
-	float a = 0.0f;
-	float r = 255.0f;
-	float g = 197.0f;
-	float b = 143.0f;
+	DirectX::XMFLOAT4 lightColor_Directional, lightColor_Point, lightColor_Spot;
 
+	// Directional Light Values
+	static float a = 0.0f;
+	static float r = 255.0f;
+	static float g = 197.0f;
+	static float b = 143.0f;
+	
+	// Point Light Values
+	static float a2 = 0.0f;
+	static float r2 = 201.0f;
+	static float g2 = 226.0f;
+	static float b2 = 255.0f;
+
+	// Spot Light Values
+	static float a3 = 0.0f;
+	static float r3 = 167.0f;
+	static float g3 = 0.0f;
+	static float b3 = 255.0f;
+
+	// To change Directional Light
 	if (m_kbuttons[VK_NUMPAD1])
 	{
 		// Switch the light to Candle Light
@@ -395,9 +410,93 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		g = 250.0f;
 		b = 244.0f;
 	}
+	if (m_kbuttons[VK_NUMPAD3])
+	{
+		// Switch the light to Mercury Vapor Light
+		a = 0.0f;
+		r = 216.0f;
+		g = 247.0f;
+		b = 255.0f;
+	}
 
-	lightColor = { (r / 255.0f), (g / 255.0f), (b / 255.0f), a };
-	elephant_directional_light.color = lightColor;
+	// To change Point Light
+	if (m_kbuttons[VK_NUMPAD4])
+	{
+		// Switch the light to Sodium Vapor Light
+		a2 = 0.0f;
+		r2 = 255.0f;
+		g2 = 209.0f;
+		b2 = 178.0f;
+	}
+	if (m_kbuttons[VK_NUMPAD5])
+	{
+		// Switch the light to Warm Fluorescent Light
+		a2 = 0.0f;
+		r2 = 255.0f;
+		g2 = 244.0f;
+		b2 = 229.0f;
+	}
+	if (m_kbuttons[VK_NUMPAD6])
+	{
+		// Switch the light to 100W Tungsten Light
+		a2 = 0.0f;
+		r2 = 255.0f;
+		g2 = 214.0f;
+		b2 = 170.0f;
+	}
+
+	// To change Spot Light
+	if (m_kbuttons[VK_NUMPAD7])
+	{
+		a3 = 0.0f;
+		r3 = 64.0f;
+		g3 = 156.0f;
+		b3 = 255.0f;
+	}
+	if (m_kbuttons[VK_NUMPAD8])
+	{
+		a3 = 0.0f;
+		r3 = 212.0f;
+		g3 = 235.0f;
+		b3 = 255.0f;
+	}
+	if (m_kbuttons[VK_NUMPAD9])
+	{
+		a3 = 0.0f;
+		r3 = 255.0f;
+		g3 = 183.0f;
+		b3 = 76.0f;
+	}
+
+	if (m_kbuttons[VK_F1])
+	{
+		a = 0.0f;
+		r = 255.0f;
+		g = 197.0f;
+		b = 143.0f;
+
+		a2 = 0.0f;
+		r2 = 201.0f;
+		g2 = 226.0f;
+		b2 = 255.0f;
+
+		a3 = 0.0f;
+		r3 = 167.0f;
+		g3 = 0.0f;
+		b3 = 255.0f;
+	}
+
+	// Calculate New Colors
+	lightColor_Directional = { (r / 255.0f), (g / 255.0f), (b / 255.0f), a };
+	lightColor_Point = { (r2 / 255.0f), (g2 / 255.0f), (b2 / 255.0f), a2 };
+	lightColor_Spot = { (r3 / 255.0f), (g3 / 255.0f), (b3 / 255.0f), a3 };
+	
+	// Set the new color to the lights
+	elephant_directional_light.color = lightColor_Directional;
+	elephant_point_light.color = lightColor_Point;
+	elephant_spot_light.color = lightColor_Spot;
+
+	// Update lights
 	UpdateLights();
 }
 
