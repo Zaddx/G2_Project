@@ -253,7 +253,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &ou
 		// Construct triangle edges
 		DirectX::XMFLOAT3 edge1, edge2;
 		edge1 = Vector_Subtraction(temp1.pos, temp2.pos);
-		edge2 = Vector_Subtraction(temp2.pos, temp3.pos);
+		edge2 = Vector_Subtraction(temp2.pos, temp3.pos); 
 
 		// Cross the two edges
 		DirectX::XMFLOAT3 edge_cross;
