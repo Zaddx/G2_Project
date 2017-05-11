@@ -139,11 +139,6 @@ namespace DX11UWA
 		// Light Movement Variables
 		DirectX::XMFLOAT4 lightColor_Directional, lightColor_Point, lightColor_Spot;
 		bool firstRun = true;
-		//static float y_inc_dir;
-		//float x_inc_point;
-		//float x_inc_spot_pos;
-		//float z_inc_spot_pos;
-		//float x_inc_spot_dir;
 		////////////////////////////////////////////////////////////////
 		//                  END ELEPHANT MODEL STUFF                  //
 		////////////////////////////////////////////////////////////////

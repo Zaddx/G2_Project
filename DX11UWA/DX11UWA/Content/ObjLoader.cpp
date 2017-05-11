@@ -26,6 +26,16 @@ DirectX::XMFLOAT3 Vector_Subtraction(DirectX::XMFLOAT3 &_a, DirectX::XMFLOAT3 &_
 
 	temp.x = _a.x - _b.x;
 	temp.y = _a.y - _b.y;
+	temp.z = _a.z - _b.z;
+
+	return temp;
+}
+
+DirectX::XMFLOAT3 Vector_Addition(DirectX::XMFLOAT3 &_a, DirectX::XMFLOAT3 &_b) {
+	DirectX::XMFLOAT3 temp;
+
+	temp.x = _a.x + _b.x;
+	temp.y = _a.y + _b.y;
 	temp.z = _a.z + _b.z;
 
 	return temp;
@@ -81,6 +91,23 @@ DirectX::XMFLOAT3 Vector_Normalize(DirectX::XMFLOAT3 v)
 float Vector_Dot(DirectX::XMFLOAT3 v, DirectX::XMFLOAT3 w)
 {
 	return  v.x * w.x + v.y * w.y + v.z * w.z;
+}
+
+DirectX::XMFLOAT3 Vector_Cross(DirectX::XMFLOAT3 &_a, DirectX::XMFLOAT3 &_b)
+{
+	DirectX::XMFLOAT3 temp;
+
+	float i, j, k;
+
+	i = _a.y * _b.z - _a.z * _b.y;
+	j = _a.z * _b.x - _a.x * _b.z;
+	k = _a.x * _b.y - _a.y * _b.x;
+
+	temp.x = i;
+	temp.y = j;
+	temp.z = k;
+
+	return temp;
 }
 
 DirectX::XMFLOAT3 Vector_Scalar_Multiply(DirectX::XMFLOAT3 v, float s)
@@ -198,6 +225,59 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &ou
 
 		vertices.push_back(temp);
 		indices.push_back(i);
+	}
+
+	// Loop all verts
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		DX11UWA::VertexPositionUVNormal temp = vertices[i];
+
+		// 0 out Normals
+		temp.normal = { 0.0f, 0.0f, 0.0f };
+	}
+
+	// Loop through all tris
+	// Index buffer 3 at a time
+	for (unsigned int i = 0; i < indices.size(); i+=3)
+	{
+		// Get the indices
+		unsigned int index1 = indices[i];
+		unsigned int index2 = indices[i + 1];
+		unsigned int index3 = indices[i + 2];
+
+		// Get the verts
+		DX11UWA::VertexPositionUVNormal temp1 = vertices[index1];
+		DX11UWA::VertexPositionUVNormal temp2 = vertices[index2];
+		DX11UWA::VertexPositionUVNormal temp3 = vertices[index3];
+
+		// Construct triangle edges
+		DirectX::XMFLOAT3 edge1, edge2;
+		edge1 = Vector_Subtraction(temp1.pos, temp2.pos);
+		edge2 = Vector_Subtraction(temp2.pos, temp3.pos);
+
+		// Cross the two edges
+		DirectX::XMFLOAT3 edge_cross;
+		edge_cross = Vector_Cross(edge1, edge2);
+
+		// Normalize Result
+		DirectX::XMFLOAT3 normalized_cross;
+		normalized_cross = Vector_Normalize(edge_cross);
+
+		// Add Result To Verts
+
+		
+		vertices[index1].normal = Vector_Addition(vertices[index1].normal, normalized_cross);
+		vertices[index2].normal = Vector_Addition(vertices[index2].normal, normalized_cross);
+		vertices[index3].normal = Vector_Addition(vertices[index3].normal, normalized_cross);
+	}
+
+	// Loop through all verts and normalize normals
+	for (unsigned int i = 0; i < vertices.size(); i++)
+	{
+		DX11UWA::VertexPositionUVNormal temp = vertices[i];
+
+		// Normalize normals
+		vertices[i].normal = Vector_Normalize(temp.normal);
 	}
 
 	out_vertices = vertices;
