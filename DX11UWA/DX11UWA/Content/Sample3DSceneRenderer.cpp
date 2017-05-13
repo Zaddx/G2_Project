@@ -1169,6 +1169,83 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma endregion
 
+#pragma region Height Map Initialization
+
+	HeightMapLoad("Assets/Heightmaps/West_Norway.bmp", &hmInfo);
+
+	int cols = hmInfo.terrainWidth;
+	int rows = hmInfo.terrainHeight;
+
+	// Create the grid
+	numVertices = rows * cols;
+	numFaces = (rows - 1) * (cols - 1) * 2;
+
+	vector<VertexPositionUVNormal> v(numVertices);
+
+	for (DWORD i = 0; i < rows; i++)
+	{
+		for (DWORD j = 0; j < cols; j++)
+		{
+			v[i*cols + j].pos = hmInfo.heightMap[i*cols + j];
+			v[i*cols + j].normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		}
+	}
+
+	vector<DWORD> indices(numFaces * 3);
+	int k = 0;
+	int texUIndex = 0;
+	int texVIndex = 0;
+
+	for (DWORD i = 0; i < rows-1; i++)
+	{
+		for (DWORD j = 0; j < cols-1; j++)
+		{
+			indices[k] = i * cols + j;				// Bottom Left of quad
+			v[i*cols + j].uv = XMFLOAT3(texUIndex + 0.0f, texVIndex + 1.0f, 0.0f);
+
+			indices[k + 1] = i * cols + j + 1;		// Bottom right of quad
+			v[i * cols + j + 1].uv = XMFLOAT3(texUIndex + 1.0f, texVIndex + 1.0f, 0.0f);
+
+			indices[k + 2] = (i + 1) * cols + j;	// Top left of quad
+			v[(i + 1) * cols + j].uv = XMFLOAT3(texUIndex + 0.0f, texVIndex + 0.0f, 0.0f);
+
+
+			indices[k + 3] = (i + 1) * cols + j;	// Top left of quad
+			v[(i + 1) * cols + j].uv = XMFLOAT3(texUIndex + 0.0f, texVIndex + 0.0f, 0.0f);
+
+			indices[k + 4] = i * cols + j + 1;		// Bottom right of quad
+			v[i * cols + j + 1].uv = XMFLOAT3(texUIndex + 1.0f, texVIndex + 1.0f, 0.0f);
+
+			k += 6;	// Next quad
+		}
+
+		texUIndex = 0;
+		texVIndex++;
+	}
+
+	//////////////////////Compute Normals///////////////////////////
+	// Now we will compute the normals for each vertex using normal averaging
+	vector<XMFLOAT3> tempNormal;
+
+	// Normalized and unnormalized normals
+	XMFLOAT3 unnormalized = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	// Used to get vectors (sides) from the position of the verts
+	float vecX, vecY, vecZ;
+
+	// Two edges of our triangle
+	XMVECTOR edge1 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR edge2 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Compute face normals
+	for (int i = 0; i < numFaces; i++)
+	{
+		// Get the vector describing one edge of our triangle (edge 0, 2)
+	}
+
+#pragma endregion
+
+
 
 }
 
