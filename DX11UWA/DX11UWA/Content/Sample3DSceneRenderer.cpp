@@ -337,7 +337,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model._41, m_constantBufferData_ghost.model._42, m_constantBufferData_ghost.model._43, 0.0f };
 	}
 
-	// Buttons To Change Between WireFrame and DefaultState
+	// Buttons To Change Between WireFrame and DefaultState 
 	if (m_kbuttons[VK_F3])
 	{
 		auto context = m_deviceResources->GetD3DDeviceContext();
