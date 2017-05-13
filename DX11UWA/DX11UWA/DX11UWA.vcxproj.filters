@@ -134,6 +134,9 @@
     <Image Include="Assets\Textures\masterchief_color.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
+    <Image Include="Assets\Textures\ghost.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -144,6 +147,9 @@
       <Filter>Assets\Model</Filter>
     </None>
     <None Include="Assets\Models\H3_Elephant.obj">
+      <Filter>Assets\Model</Filter>
+    </None>
+    <None Include="Assets\Models\HR_Ghost.obj">
       <Filter>Assets\Model</Filter>
     </None>
   </ItemGroup>

@@ -83,6 +83,7 @@ namespace DX11UWA
 		float fovAngleY = 70.0f * (XM_PI / 180.0f);
 		float zFar = 175.0f;
 		float zNear = 0.01f;
+		bool firstRun_camera = true;
 
 		// Variables that will clamp the zooming
 		float small_zoom_clamp = 0.1f;
@@ -141,6 +142,20 @@ namespace DX11UWA
 		bool firstRun = true;
 		////////////////////////////////////////////////////////////////
 		//                  END ELEPHANT MODEL STUFF                  //
+		////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////
+		//                   BEGIN GHOST MODEL STUFF                  //
+		////////////////////////////////////////////////////////////////
+		// Master Chief
+		Model ghost_model;
+		ModelViewProjectionConstantBuffer m_constantBufferData_ghost;
+
+		// Texture Variables
+		ID3D11Resource* ghost_texture;
+		ID3D11ShaderResourceView* ghost_meshSRV;
+		////////////////////////////////////////////////////////////////
+		//                    END GHOST MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////
 	};
 }

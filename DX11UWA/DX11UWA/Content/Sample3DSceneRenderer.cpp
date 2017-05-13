@@ -13,6 +13,9 @@ static const XMVECTORF32 eye2 = { -15.0f, 45.0f, 0.0f, 0.0f };
 static const XMVECTORF32 at = { 0.0f, 18.0f, 2.5f, 0.0f };
 static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
+ID3D11RasterizerState* WireFrame;
+ID3D11RasterizerState* DefaultState;
+
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -54,16 +57,23 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_ghost.projection, perspectiveMatrix * orientationMatrix);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	// When key press set the at to the object's position
 
-	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
-	XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
+	if (firstRun_camera)
+	{
+		XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
+		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
+
+		firstRun_camera = false;
+	}
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_elephant.view, XMMatrixLookAtLH(eye, at, up));
+	XMStoreFloat4x4(&m_constantBufferData_ghost.view, XMMatrixLookAtLH(eye, at, up));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -161,8 +171,11 @@ void Sample3DSceneRenderer::Rotate(float radians)
 	// Set The model of the master chief model to the identity matrix
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.model, identity);
 
-	// Set The model of the asgard base model to the identity matrix
+	// Set The model of the elephant model to the identity matrix
 	XMStoreFloat4x4(&m_constantBufferData_elephant.model, identity);
+
+	// Set the model of the ghost to make it orbit around the elephant
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model, XMMatrixRotationZ(radians));
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -315,6 +328,27 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	}
 
 	// Use last row of the object.model to change the at
+	if (m_kbuttons[VK_F2])
+		camera2_auto_rotate != camera2_auto_rotate;
+
+	if (camera2_auto_rotate)
+	{
+		// Create a XMVECTORF32 to change the at to
+		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model._41, m_constantBufferData_ghost.model._42, m_constantBufferData_ghost.model._43, 0.0f };
+	}
+
+	// Buttons To Change Between WireFrame and DefaultState
+	if (m_kbuttons[VK_F3])
+	{
+		auto context = m_deviceResources->GetD3DDeviceContext();
+		context->RSSetState(DefaultState);
+	}
+
+	if (m_kbuttons[VK_F4])
+	{
+		auto context = m_deviceResources->GetD3DDeviceContext();
+		context->RSSetState(WireFrame);
+	}
 
 	// Setup key presses to adjust Far and Near plane clipping
 	// Have [] control the far plane, and <> control the near plane
@@ -667,6 +701,40 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 #pragma endregion
 
+#pragma region 343 Guilty Spark
+
+	if (!ghost_model._loadingComplete)
+	{
+		return;
+	}
+
+	ID3D11ShaderResourceView* guiltySpark_texViews[] = { ghost_meshSRV };
+	context->PSSetShaderResources(0, 1, guiltySpark_texViews);
+
+	XMStoreFloat4x4(&m_constantBufferData_ghost.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
+
+	// Setup Vertex Buffer
+	UINT guiltySpark_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT guiltySpark_offset = 0;
+	context->IASetVertexBuffers(0, 1, ghost_model._vertexBuffer.GetAddressOf(), &guiltySpark_stride, &guiltySpark_offset);
+
+	// Set Index buffer
+	context->IASetIndexBuffer(ghost_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetInputLayout(ghost_model._inputLayout.Get());
+
+	context->UpdateSubresource1(ghost_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_ghost, 0, 0, 0);
+
+	// Attach our vertex shader.
+	context->VSSetShader(ghost_model._vertexShader.Get(), nullptr, 0);
+
+	// Attach our pixel shader.
+	context->PSSetShader(ghost_model._pixelShader.Get(), nullptr, 0);
+
+	context->DrawIndexed(ghost_model._indexCount, 0, 0);
+
+#pragma endregion
+
+
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -723,14 +791,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-100.0f, -100.0f, -100.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-100.0f, -100.0f,  100.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-100.0f,  100.0f, -100.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-100.0f,  100.0f,  100.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(100.0f, -100.0f, -100.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(100.0f, -100.0f,  100.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(100.0f,  100.0f, -100.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(100.0f,  100.0f,  100.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-150.0f, -150.0f, -150.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-150.0f, -150.0f,  150.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-150.0f,  150.0f, -150.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-150.0f,  150.0f,  150.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(150.0f, -150.0f, -150.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(150.0f, -150.0f,  150.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(150.0f,  150.0f, -150.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(150.0f,  150.0f,  150.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -984,6 +1052,123 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma endregion
 
+#pragma region Ghost
+
+	{
+		const char *path = "Assets/Textures/ghost.dds";
+
+		size_t pathSize = strlen(path) + 1;
+		wchar_t *wc = new wchar_t[pathSize];
+		mbstowcs(&wc[0], path, pathSize);
+
+		hr = CreateDDSTextureFromFile(device, wc, &ghost_texture, &ghost_meshSRV);
+	}
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTask_ghost = loadVSTaskTexture.then([this](const std::vector<byte>& ghost_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&ghost_fileData[0], ghost_fileData.size(), nullptr, &ghost_model._vertexShader));
+
+		static const D3D11_INPUT_ELEMENT_DESC ghost_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(ghost_vertexDesc, ARRAYSIZE(ghost_vertexDesc), &ghost_fileData[0], ghost_fileData.size(), &ghost_model._inputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTask_ghost = loadPSTaskTexture.then([this](const std::vector<byte>& ghost_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&ghost_fileData[0], ghost_fileData.size(), nullptr, &ghost_model._pixelShader));
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &ghost_model._constantBuffer));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createTask_Ghost = (createPSTask_ghost && createVSTask_ghost).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionUVNormal> ghost_vertices;
+		std::vector<DirectX::XMFLOAT3> ghost_normals;
+		std::vector<DirectX::XMFLOAT2> ghost_uvs;
+		std::vector<unsigned int> ghost_indices;
+
+		loadOBJ("Assets/Models/HR_Ghost.obj", ghost_vertices, ghost_indices, ghost_normals, ghost_uvs);
+
+		// Scale down the model
+		for (unsigned int i = 0; i < ghost_vertices.size(); i++)
+		{
+			VertexPositionUVNormal temp = ghost_vertices[i];
+			temp.pos.x *= .05f;
+			temp.pos.y *= .05f;
+			temp.pos.z *= .05f;
+
+			// Move the Ghost Model Somewhere above the elephant for it to orbit
+			temp.pos.z += 50.0f;
+			temp.pos.y += 25.0f;
+			ghost_vertices[i] = temp;
+		}
+
+		D3D11_SUBRESOURCE_DATA ghost_vertexBufferData = { 0 };
+		ghost_vertexBufferData.pSysMem = ghost_vertices.data();
+		ghost_vertexBufferData.SysMemPitch = 0;
+		ghost_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC ghost_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * ghost_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&ghost_vertexBufferDesc, &ghost_vertexBufferData, &ghost_model._vertexBuffer));
+
+		ghost_model._indexCount = ghost_indices.size();
+
+		D3D11_SUBRESOURCE_DATA ghost_indexBufferData = { 0 };
+		ghost_indexBufferData.pSysMem = ghost_indices.data();
+		ghost_indexBufferData.SysMemPitch = 0;
+		ghost_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC ghost_indexBufferDesc(sizeof(unsigned int) * ghost_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&ghost_indexBufferDesc, &ghost_indexBufferData, &ghost_model._indexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createTask_Ghost.then([this]()
+	{
+		ghost_model._loadingComplete = true;
+	});
+
+#pragma endregion
+
+#pragma region Initialize RasterizerStates
+
+	// Setup For WireFrame
+	{
+		D3D11_RASTERIZER_DESC wfdesc;
+		ZeroMemory(&wfdesc, sizeof(D3D11_RASTERIZER_DESC));
+		wfdesc.FillMode = D3D11_FILL_WIREFRAME;
+		wfdesc.CullMode = D3D11_CULL_NONE;
+
+		auto context = m_deviceResources->GetD3DDeviceContext();
+		ID3D11Device* device;
+		context->GetDevice(&device);
+		hr = device->CreateRasterizerState(&wfdesc, &WireFrame);
+
+	}
+
+	// Setup For DefaultState
+	{
+		D3D11_RASTERIZER_DESC dsdesc;
+		ZeroMemory(&dsdesc, sizeof(D3D11_RASTERIZER_DESC));
+		dsdesc.FillMode = D3D11_FILL_SOLID;
+		dsdesc.CullMode = D3D11_CULL_NONE;
+
+		auto context = m_deviceResources->GetD3DDeviceContext();
+		ID3D11Device* device;
+		context->GetDevice(&device);
+		hr = device->CreateRasterizerState(&dsdesc, &DefaultState);
+
+	}
+
+#pragma endregion
+
 
 }
 
@@ -1027,9 +1212,12 @@ void Sample3DSceneRenderer::UpdatePlanes()
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_ghost.projection, perspectiveMatrix * orientationMatrix);
+
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
 	context->UpdateSubresource1(master_chief_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_master_chief, 0, 0, 0);
 	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
+	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_ghost, 0, 0, 0);
 }

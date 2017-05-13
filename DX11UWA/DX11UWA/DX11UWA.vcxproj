@@ -194,6 +194,7 @@
     <Image Include="Assets\Square44x44Logo.scale-200.png" />
     <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Image Include="Assets\StoreLogo.png" />
+    <Image Include="Assets\Textures\ghost.dds" />
     <Image Include="Assets\Textures\Halo_Reach_Skybox.dds" />
     <Image Include="Assets\Textures\masterchief2.dds" />
     <Image Include="Assets\Textures\masterchief_color.dds" />
@@ -271,6 +272,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Models\H3_Elephant.obj">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Models\HR_Ghost.obj">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </None>
