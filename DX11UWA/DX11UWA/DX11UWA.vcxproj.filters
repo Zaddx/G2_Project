@@ -50,6 +50,9 @@
     <Filter Include="Assets\Textures">
       <UniqueIdentifier>{b9633d2d-0a36-40be-9d93-a5d3bee5b4a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Heightmaps">
+      <UniqueIdentifier>{f7d183ef-b709-493d-9191-5cdff10b9c68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -77,6 +80,9 @@
       <Filter>Content\Source</Filter>
     </ClCompile>
     <ClCompile Include="Content\DDSTextureLoader.cpp">
+      <Filter>Content\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HeightMapLoader.cpp">
       <Filter>Content\Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -120,6 +126,9 @@
     <ClInclude Include="Content\DDSTextureLoader.h">
       <Filter>Content\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="HeightMapLoader.h">
+      <Filter>Content\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -136,6 +145,12 @@
     </Image>
     <Image Include="Assets\Textures\ghost.dds">
       <Filter>Assets\Textures</Filter>
+    </Image>
+    <Image Include="Assets\Heightmaps\West_Norway.bmp">
+      <Filter>Assets\Heightmaps</Filter>
+    </Image>
+    <Image Include="Assets\Heightmaps\Terrain Height Map.bmp">
+      <Filter>Assets\Heightmaps</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

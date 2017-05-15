@@ -7,6 +7,7 @@
 // My Header Files
 #include "ObjLoader.h"
 #include "Structures.h"
+#include "HeightMapLoader.h"
 
 // Texture header file
 #include "DDSTextureLoader.h"
@@ -123,7 +124,7 @@ namespace DX11UWA
 		////////////////////////////////////////////////////////////////
 		//                 BEGIN ELEPHANT MODEL STUFF                 //
 		////////////////////////////////////////////////////////////////
-		// Master Chief
+		// Elephant Model
 		Model elephant_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_elephant;
 
@@ -147,7 +148,7 @@ namespace DX11UWA
 		////////////////////////////////////////////////////////////////
 		//                   BEGIN GHOST MODEL STUFF                  //
 		////////////////////////////////////////////////////////////////
-		// Master Chief
+		// Ghost Model
 		Model ghost_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_ghost;
 
@@ -156,6 +157,23 @@ namespace DX11UWA
 		ID3D11ShaderResourceView* ghost_meshSRV;
 		////////////////////////////////////////////////////////////////
 		//                    END GHOST MODEL STUFF                   //
+		////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////
+		//                    BEGIN HEIGHT MAP STUFF                  //
+		////////////////////////////////////////////////////////////////
+		// Height Map
+		HeightMapInfo hmInfo;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>	hm_constantBuffer;
+		ModelViewProjectionConstantBuffer		hm_constantBufferData; 
+		Microsoft::WRL::ComPtr<ID3D11Buffer>	hm_vertexBuffer;
+
+		// Variables for Height Map
+		int NumFaces = 0;
+		int NumVertices = 0;
+
+		////////////////////////////////////////////////////////////////
+		//                    END HEIGHT MAP STUFF                    //
 		////////////////////////////////////////////////////////////////
 	};
 }

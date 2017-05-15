@@ -89,6 +89,15 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		Rotate(radians);
 	}
 
+	// Create groundWorl matrix
+	XMMATRIX groundWorld = XMMatrixIdentity();
+
+	// Define Terrain's world space matrix
+	XMMATRIX Scale = XMMatrixScaling(10.0f, 10.0f, 10.0f);
+	XMMATRIX Translation = XMMatrixTranslation(-100.0f, -100.0f, -100.0f);
+
+	// Set terrain's world space using the transformations
+	groundWorld = Scale * Translation;
 
 	// Update or move camera here
 	UpdateCamera(timer, 10.0f, 0.75f);
@@ -734,6 +743,12 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 #pragma endregion
 
+#pragma region Height Map
+
+	context->DrawIndexed(NumFaces * 3, 0, 0);
+
+#pragma endregion
+
 
 }
 
@@ -1171,17 +1186,17 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma region Height Map Initialization
 
-	HeightMapLoad("Assets/Heightmaps/West_Norway.bmp", &hmInfo);
+	HeightMapLoad("Assets/Heightmaps/Terrain Height Map.bmp", hmInfo);
 
 	int cols = hmInfo.terrainWidth;
 	int rows = hmInfo.terrainHeight;
 
 	// Create the grid
-	numVertices = rows * cols;
-	numFaces = (rows - 1) * (cols - 1) * 2;
+	NumVertices = rows * cols;
+	NumFaces = (rows - 1) * (cols - 1) * 2;
 
-	vector<VertexPositionUVNormal> v(numVertices);
-
+	vector<VertexPositionUVNormal> v(NumVertices);
+	 
 	for (DWORD i = 0; i < rows; i++)
 	{
 		for (DWORD j = 0; j < cols; j++)
@@ -1191,7 +1206,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		}
 	}
 
-	vector<DWORD> indices(numFaces * 3);
+	vector<DWORD> indices(NumFaces * 3);
 	int k = 0;
 	int texUIndex = 0;
 	int texVIndex = 0;
@@ -1238,10 +1253,102 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	XMVECTOR edge2 = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Compute face normals
-	for (int i = 0; i < numFaces; i++)
+	for (int i = 0; i < NumFaces; ++i)
 	{
 		// Get the vector describing one edge of our triangle (edge 0, 2)
+		vecX = v[indices[(i * 3)]].pos.x - v[indices[(i * 3) + 2]].pos.x;
+		vecY = v[indices[(i * 3)]].pos.y - v[indices[(i * 3) + 2]].pos.y;
+		vecZ = v[indices[(i * 3)]].pos.z - v[indices[(i * 3) + 2]].pos.z;
+		edge1 = XMVectorSet(vecX, vecY, vecZ, 0.0f);		// Create First Edge
+
+		// Get the vector describing another edge of our triangle (edge 2, 1)
+		vecX = v[indices[(i * 3) + 2]].pos.x - v[indices[(i * 3) + 1]].pos.x;
+		vecY = v[indices[(i * 3) + 2]].pos.y - v[indices[(i * 3) + 1]].pos.y;
+		vecZ = v[indices[(i * 3) + 2]].pos.z - v[indices[(i * 3) + 1]].pos.z;
+
+		// Cross multiply the two edge vectors to get the un-normalized face normal
+		XMStoreFloat3(&unnormalized, XMVector3Cross(edge1, edge2));
+		tempNormal.push_back(unnormalized);		// Save unormalized normal (for normal averaging)
 	}
+
+	// Compute vertex normals (normal Averaging)
+	XMVECTOR normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	int facesUsing = 0;
+	float tX;
+	float tY;
+	float tZ;
+
+	// Go nthrough each vertex
+	for (int i = 0; i < NumVertices; ++i)
+	{
+		// Check which triangles use this vertex
+		for (int j = 0; j < NumFaces; j++)
+		{
+			if (indices[j*3] == i ||
+				indices[(j*3)+1] == i ||
+				indices[(j*3)+2] == i)
+			{
+				tX = XMVectorGetX(normalSum) + tempNormal[j].x;
+				tY = XMVectorGetY(normalSum) + tempNormal[j].y;
+				tZ = XMVectorGetZ(normalSum) + tempNormal[j].z;
+
+				normalSum = XMVectorSet(tX, tY, tZ, 0.0f);		// IEF a face is using the vertex, add the unormalized face normal to the normalSum
+				facesUsing++;
+			}
+		}
+
+		// Get the actual normal by dividing the normalSum by the number of faces sharing the vertex
+		normalSum = normalSum / facesUsing;
+
+		// Normalize the normalSum vector
+		normalSum = XMVector3Normalize(normalSum);
+
+		// Store the normal in our current vertex
+		v[i].normal.x = XMVectorGetX(normalSum);
+		v[i].normal.y = XMVectorGetY(normalSum);
+		v[i].normal.z = XMVectorGetZ(normalSum);
+
+		// Clear normalSum and faceUsing for next vertex
+		normalSum = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+		facesUsing = 0;
+	}
+
+	// Creating The Vertex and Index Buffers
+	D3D11_BUFFER_DESC hm_indexbufferDesc;
+	ZeroMemory(&hm_indexbufferDesc, sizeof(hm_indexbufferDesc));
+
+	hm_indexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	/************************************New Stuff****************************************************/
+	hm_indexbufferDesc.ByteWidth = sizeof(DWORD) * NumFaces * 3;
+	/*************************************************************************************************/
+	hm_indexbufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	hm_indexbufferDesc.CPUAccessFlags = 0;
+	hm_indexbufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA iinitData;
+	/************************************New Stuff****************************************************/
+	iinitData.pSysMem = &indices[0];
+	/*************************************************************************************************/
+	device->CreateBuffer(&hm_indexbufferDesc, &iinitData, &hm_constantBuffer);
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	/************************************New Stuff****************************************************/
+	vertexBufferDesc.ByteWidth = sizeof(VertexPositionUVNormal) * NumVertices;
+	/*************************************************************************************************/
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA vertexBufferData;
+
+	ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+	/************************************New Stuff****************************************************/
+	vertexBufferData.pSysMem = &v[0];
+	/*************************************************************************************************/
+	hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &hm_vertexBuffer);
 
 #pragma endregion
 
