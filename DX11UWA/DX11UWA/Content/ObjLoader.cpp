@@ -264,8 +264,6 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &ou
 		normalized_cross = Vector_Normalize(edge_cross);
 
 		// Add Result To Verts
-
-		
 		vertices[index1].normal = Vector_Addition(vertices[index1].normal, normalized_cross);
 		vertices[index2].normal = Vector_Addition(vertices[index2].normal, normalized_cross);
 		vertices[index3].normal = Vector_Addition(vertices[index3].normal, normalized_cross);
@@ -284,7 +282,7 @@ bool loadOBJ(const char * path, std::vector<DX11UWA::VertexPositionUVNormal> &ou
 	out_indices = indices;
 	out_normals = normals;
 	out_uvs = uvs;
-
+	
 	return true;
 }
 

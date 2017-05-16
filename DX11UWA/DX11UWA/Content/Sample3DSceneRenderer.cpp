@@ -91,18 +91,8 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		Rotate(radians);
 	}
 
-	// Create groundWorl matrix
-	XMMATRIX groundWorld = XMMatrixIdentity();
-
-	// Define Terrain's world space matrix
-	XMMATRIX Scale = XMMatrixScaling(10.0f, 10.0f, 10.0f);
-	XMMATRIX Translation = XMMatrixTranslation(-100.0f, -100.0f, -100.0f);
-
-	// Set terrain's world space using the transformations
-	groundWorld = Scale * Translation;
-
 	// Update or move camera here
-	UpdateCamera(timer, 10.0f, 0.75f);
+	UpdateCamera(timer, 20.0f, 0.75f);
 
 	// Update Lights
 	static float y_inc_dir = -timer.GetElapsedSeconds();
@@ -607,6 +597,7 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	context->PSSetShaderResources(0, 1, *skyboxViews);
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use)));
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranslation(_camera_to_use._41, _camera_to_use._42, _camera_to_use._43));
 
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -654,6 +645,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	// Attach our vertex shader.
 	context->VSSetShader(master_chief_model._vertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, master_chief_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our pixel shader.
 	context->PSSetShader(master_chief_model._pixelShader.Get(), nullptr, 0);
@@ -694,6 +687,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	// Attach our vertex shader.
 	context->VSSetShader(elephant_model._vertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, elephant_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our pixel shader.
 	context->PSSetShader(elephant_model._pixelShader.Get(), nullptr, 0);
@@ -727,6 +722,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	// Attach our vertex shader.
 	context->VSSetShader(ghost_model._vertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, ghost_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 
 	// Attach our pixel shader.
 	context->PSSetShader(ghost_model._pixelShader.Get(), nullptr, 0);
@@ -762,6 +759,9 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	// Attach our vertex shader.
 	context->VSSetShader(grid_model._vertexShader.Get(), nullptr, 0);
 
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
+
 	// Attach our pixel shader.
 	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
 
@@ -791,7 +791,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	ID3D11Device *device_skybox;
 	context_skybox->GetDevice(&device_skybox);
 
-	const char *skybox_path = "Assets/Textures/Halo_Reach_Skybox.dds";
+	const char *skybox_path = "Assets/Textures/midnight_skybox.dds";
 
 	size_t skybox_pathSize = strlen(skybox_path) + 1;
 	wchar_t *skybox_wc = new wchar_t[skybox_pathSize];

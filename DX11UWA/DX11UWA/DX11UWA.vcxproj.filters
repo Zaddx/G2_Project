@@ -152,6 +152,9 @@
     <Image Include="Assets\Heightmaps\West_Norway.dds">
       <Filter>Assets\Heightmaps</Filter>
     </Image>
+    <Image Include="Assets\Textures\midnight_skybox.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
