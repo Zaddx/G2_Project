@@ -24,7 +24,7 @@ struct PixelShaderInput
     float3 norm : NORM;
 };
  
-texture2D textureFile : register(t0);
+Texture2D textureFile : register(t0);
 SamplerState envFilter : register(s0);
 
 // Simple shader to do vertex processing on the GPU. 
@@ -40,7 +40,7 @@ PixelShaderInput main(VertexShaderInput input)
     pos = mul(pos, model);
 
     // Adjust the y based on the Red value
-    pos.y += textureColor.r * 10;
+    pos.y += textureColor.r * 10.0f;
 
     pos = mul(pos, view);
     pos = mul(pos, projection);

@@ -10,7 +10,7 @@
 #include "HeightMapLoader.h"
 
 // Texture header file
-#include "DDSTextureLoader.h"
+#include "Common\DDSTextureLoader.h"
 
 namespace DX11UWA
 {
@@ -179,12 +179,12 @@ namespace DX11UWA
 		//                   BEGIN GRID MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////
 		// Grid Model
-		Model grid_model;
-		ModelViewProjectionConstantBuffer m_constantBufferData_grid;
+		//Model grid_model;
+		//ModelViewProjectionConstantBuffer m_constantBufferData_grid;
 
-		// Texture Variables
-		ID3D11Resource* grid_texture;
-		ID3D11ShaderResourceView* grid_meshSRV;
+		//// Texture Variables
+		//ID3D11Resource* grid_texture;
+		//ID3D11ShaderResourceView* grid_meshSRV;
 		////////////////////////////////////////////////////////////////
 		//                    END GHOST MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////

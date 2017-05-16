@@ -207,7 +207,6 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Common\DDSTextureLoader.h" />
     <ClInclude Include="Common\DeviceResources.h" />
-    <ClInclude Include="Content\DDSTextureLoader.h" />
     <ClInclude Include="Content\ObjLoader.h" />
     <ClInclude Include="DX11UWAMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
@@ -223,7 +222,6 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DDSTextureLoader.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
-    <ClCompile Include="Content\DDSTextureLoader.cpp" />
     <ClCompile Include="Content\ObjLoader.cpp" />
     <ClCompile Include="DX11UWAMain.cpp" />
     <ClCompile Include="Content\SampleFpsTextRenderer.cpp" />

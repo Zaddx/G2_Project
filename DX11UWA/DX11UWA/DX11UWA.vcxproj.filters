@@ -79,9 +79,6 @@
     <ClCompile Include="Content\ObjLoader.cpp">
       <Filter>Content\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Content\DDSTextureLoader.cpp">
-      <Filter>Content\Source</Filter>
-    </ClCompile>
     <ClCompile Include="HeightMapLoader.cpp">
       <Filter>Content\Source</Filter>
     </ClCompile>
@@ -121,9 +118,6 @@
       <Filter>Content\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Structures.h">
-      <Filter>Content\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\DDSTextureLoader.h">
       <Filter>Content\Headers</Filter>
     </ClInclude>
     <ClInclude Include="HeightMapLoader.h">
