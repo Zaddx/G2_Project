@@ -146,10 +146,7 @@
     <Image Include="Assets\Textures\ghost.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
-    <Image Include="Assets\Heightmaps\West_Norway.bmp">
-      <Filter>Assets\Heightmaps</Filter>
-    </Image>
-    <Image Include="Assets\Heightmaps\Terrain Height Map.bmp">
+    <Image Include="Assets\Heightmaps\HMCSHeightmap.dds">
       <Filter>Assets\Heightmaps</Filter>
     </Image>
   </ItemGroup>
@@ -185,6 +182,18 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\SkyboxVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="HeightMapPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="HeightMapVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SingleTexturePixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SingleTextureVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
