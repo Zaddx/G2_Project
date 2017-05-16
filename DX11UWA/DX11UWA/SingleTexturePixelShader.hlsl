@@ -6,7 +6,7 @@ struct PixelShaderInput
     float3 norm : NORM;
 };
  
-texture2D textureFile : register(t0);
+Texture2D textureFile : register(t0);
  
 SamplerState envFilter : register(s0);
  

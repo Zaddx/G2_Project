@@ -1430,7 +1430,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 			temp.pos.z *= .05f;*/
 
 			// Move the grid Model Somewhere below the elephant for it to be the floor
-			temp.pos.y += 25.0f;
+			temp.pos.y -= 25.0f;
 			grid_vertices[i] = temp;
 		}
 
