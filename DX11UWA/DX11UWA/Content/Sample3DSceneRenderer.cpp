@@ -897,7 +897,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	context->GetDevice(&device);
 
 	const char *path = "Assets/Textures/masterchief2.dds";
-	const char *path2 = "Assets/Textures/masterchief_color.dds";
+	const char *path2 = "Assets/Textures/masterchief_color.dds"; 
 
 
 	size_t pathSize = strlen(path) + 1;
