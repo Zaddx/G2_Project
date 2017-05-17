@@ -40,6 +40,7 @@ namespace DX11UWA
 		void UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd);
 		void UpdateLights();
 		void UpdatePlanes();
+		void UpdateAt();
 
 	private:
 		// Cached pointer to device resources.
@@ -150,7 +151,7 @@ namespace DX11UWA
 		////////////////////////////////////////////////////////////////
 		// Ghost Model
 		Model ghost_model;
-		ModelViewProjectionConstantBuffer m_constantBufferData_ghost;
+		ModelViewProjectionConstantBufferInstanced m_constantBufferData_ghost;
 
 		// Texture Variables
 		ID3D11Resource* ghost_texture;

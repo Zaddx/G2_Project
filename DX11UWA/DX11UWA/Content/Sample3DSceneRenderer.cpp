@@ -166,7 +166,10 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Set the model of the ghost to make it orbit around the elephant
-	XMStoreFloat4x4(&m_constantBufferData_ghost.model, (XMMatrixMultiply(XMMatrixTranslation(1.0f, 1.0f, 1.0f), XMMatrixRotationY(radians))));
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[0], (XMMatrixMultiply(XMMatrixTranslation(1.0f, 1.0f, 1.0f), XMMatrixRotationY(radians))));
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], (XMMatrixMultiply(XMMatrixTranslation(5.0f, 1.0f, 5.0f), XMMatrixRotationY(-radians))));
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[2], (XMMatrixMultiply(XMMatrixTranslation(10.0f, 1.0f, 10.0f), XMMatrixRotationY(radians))));
+
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -321,12 +324,6 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 	// Use last row of the object.model to change the at
 	if (m_kbuttons[VK_F2])
 		camera2_auto_rotate != camera2_auto_rotate;
-
-	if (camera2_auto_rotate)
-	{
-		// Create a XMVECTORF32 to change the at to
-		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model._41, m_constantBufferData_ghost.model._42, m_constantBufferData_ghost.model._43, 0.0f };
-	}
 
 	// Buttons To Change Between WireFrame and DefaultState 
 	if (m_kbuttons[VK_F3])
@@ -532,7 +529,7 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 #pragma endregion
 
-
+	// Call the UpdateAt() function
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -728,7 +725,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	// Attach our pixel shader.
 	context->PSSetShader(ghost_model._pixelShader.Get(), nullptr, 0);
 
-	context->DrawIndexed(ghost_model._indexCount, 0, 0);
+	//context->DrawIndexed(ghost_model._indexCount, 0, 0);
+	context->DrawIndexedInstanced(ghost_model._indexCount, 3, 0, 0, 0);
 
 #pragma endregion
 
@@ -784,6 +782,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto loadPSTaskSingleTexture = DX::ReadDataAsync(L"SingleTexturePixelShader.cso");
 	auto loadVSTaskHeightmap = DX::ReadDataAsync(L"HeightMapVertexShader.cso");
 	auto loadPSTaskHeightmap = DX::ReadDataAsync(L"HeightMapPixelShader.cso");
+	auto loadVSTaskInstance = DX::ReadDataAsync(L"InstanceVertexShader.cso");		// Textured
+	auto loadPSTaskInstance = DX::ReadDataAsync(L"InstancePixelShader.cso");		// Textured
 
 #pragma region Skybox
 
@@ -1103,7 +1103,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	}
 
 	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTask_ghost = loadVSTaskSingleTexture.then([this](const std::vector<byte>& ghost_fileData)
+	auto createVSTask_ghost = loadVSTaskInstance.then([this](const std::vector<byte>& ghost_fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&ghost_fileData[0], ghost_fileData.size(), nullptr, &ghost_model._vertexShader));
 
@@ -1118,7 +1118,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTask_ghost = loadPSTaskSingleTexture.then([this](const std::vector<byte>& ghost_fileData)
+	auto createPSTask_ghost = loadPSTaskInstance.then([this](const std::vector<byte>& ghost_fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&ghost_fileData[0], ghost_fileData.size(), nullptr, &ghost_model._pixelShader));
 
@@ -1473,10 +1473,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_elephant.model, identity);
 
 	// Set the model of the ghost model to the identity matrix
-	XMStoreFloat4x4(&m_constantBufferData_ghost.model, identity);
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[0], identity);
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], identity);
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[2], identity);
+
 
 	// Set the model of the grid model to the identity matrix
-	//XMStoreFloat4x4(&m_constantBufferData_grid.model, identity);
+	// XMStoreFloat4x4(&m_constantBufferData_grid.model, identity);
 
 #pragma endregion
 
@@ -1531,5 +1534,19 @@ void Sample3DSceneRenderer::UpdatePlanes()
 	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
 	context->UpdateSubresource1(ghost_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_ghost, 0, 0, 0);
 	//context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
+}
 
+void Sample3DSceneRenderer::UpdateAt()
+{
+	if (camera2_auto_rotate)
+	{
+		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model[0]._41, m_constantBufferData_ghost.model[0]._42, m_constantBufferData_ghost.model[0]._43, 0.0f };
+		
+		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, ghost_location, up)));
+	}
+	
+	if (!camera2_auto_rotate)
+	{
+		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
+	}
 }
