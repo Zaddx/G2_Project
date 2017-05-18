@@ -41,6 +41,9 @@ namespace DX11UWA
 		void UpdateLights();
 		void UpdatePlanes();
 		void UpdateAt();
+		vector<VertexPositionUVNormal> GenerateGrid(int _width, int _height);
+		vector<unsigned int> GenerateIndices(int _width, int _height);
+
 
 	private:
 		// Cached pointer to device resources.
@@ -83,7 +86,7 @@ namespace DX11UWA
 		DirectX::XMMATRIX orientationMatrix;
 		float aspectRatio;
 		float fovAngleY = 70.0f * (XM_PI / 180.0f);
-		float zFar = 175.0f;
+		float zFar = 100000.0f;
 		float zNear = 0.01f;
 		bool firstRun_camera = true;
 
@@ -185,7 +188,12 @@ namespace DX11UWA
 
 		// Texture Variables
 		ID3D11Resource* grid_texture;
+		ID3D11Resource* grid_texture_snow;
+		ID3D11Resource* grid_texture_grass;
+
 		ID3D11ShaderResourceView* grid_meshSRV;
+		ID3D11ShaderResourceView* grid_meshSRV_snow;
+		ID3D11ShaderResourceView* grid_meshSRV_grass;
 		////////////////////////////////////////////////////////////////
 		//                    END GHOST MODEL STUFF                   //
 		////////////////////////////////////////////////////////////////

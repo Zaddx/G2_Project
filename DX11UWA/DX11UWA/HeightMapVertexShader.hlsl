@@ -40,7 +40,7 @@ PixelShaderInput main(VertexShaderInput input)
     pos = mul(pos, model);
 
     // Adjust the y based on the Red value
-    pos.y += textureColor.r * 10.0f;
+    pos.y += textureColor.r * 100.0f;
 
     pos = mul(pos, view);
     pos = mul(pos, projection);

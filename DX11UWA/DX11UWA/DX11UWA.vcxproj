@@ -188,6 +188,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Image Include="Assets\Heightmaps\hm2.dds" />
     <Image Include="Assets\Heightmaps\HMCSHeightmap.dds" />
     <Image Include="Assets\Heightmaps\West_Norway.dds" />
     <Image Include="Assets\LockScreenLogo.scale-200.png" />
@@ -196,7 +197,9 @@
     <Image Include="Assets\Square44x44Logo.scale-200.png" />
     <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Image Include="Assets\StoreLogo.png" />
+    <Image Include="Assets\Textures\Deep-Freeze.dds" />
     <Image Include="Assets\Textures\ghost.dds" />
+    <Image Include="Assets\Textures\grass_seamless.dds" />
     <Image Include="Assets\Textures\Halo_Reach_Skybox.dds" />
     <Image Include="Assets\Textures\masterchief2.dds" />
     <Image Include="Assets\Textures\masterchief_color.dds" />

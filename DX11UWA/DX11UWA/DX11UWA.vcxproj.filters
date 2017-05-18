@@ -149,6 +149,15 @@
     <Image Include="Assets\Textures\midnight_skybox.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
+    <Image Include="Assets\Textures\Deep-Freeze.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
+    <Image Include="Assets\Textures\grass_seamless.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
+    <Image Include="Assets\Heightmaps\hm2.dds">
+      <Filter>Assets\Heightmaps</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

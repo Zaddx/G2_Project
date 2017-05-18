@@ -6,12 +6,28 @@ struct PixelShaderInput
     float3 norm : NORM;
 };
 
-texture2D textureFile : register(t0);
+Texture2D textureFile[3] : register(t0);
  
 SamplerState envFilter : register(s0);
  
 // Simple pixel shader, inputs an interpolated vertex color and outputs it to the screen 
 float4 main(PixelShaderInput input) : SV_TARGET
 {
-    return textureFile.Sample(envFilter, input.uv);
+    // [0] Heightmap
+    // [1] Grass
+    // [2] Snow
+    float4 finalColor;
+
+    float4 heightmap_Color = textureFile[0].SampleLevel(envFilter, input.uv, 0);
+    float ratio = heightmap_Color.r;
+
+    float4 grass_Color = textureFile[1].SampleLevel(envFilter, input.uv, 0);
+    float4 snow_Color = textureFile[2].SampleLevel(envFilter, input.uv, 0);
+
+    finalColor = lerp(grass_Color, snow_Color, ratio);
+
+
+    // Read the color from the two images, and the color from the Heightmap
+    return finalColor;
+
 }

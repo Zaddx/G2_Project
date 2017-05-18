@@ -9,12 +9,14 @@ using namespace DirectX;
 using namespace Windows::Foundation;
 
 static const XMVECTORF32 eye = { -15.0f, 30.0f, -0.0f, 0.0f };
-static const XMVECTORF32 eye2 = { -15.0f, 45.0f, 0.0f, 0.0f };
+static const XMVECTORF32 eye2 = { -30.0f, 60.0f, 0.0f, 0.0f };
 static const XMVECTORF32 at = { 0.0f, 18.0f, 2.5f, 0.0f };
 static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 ID3D11RasterizerState* WireFrame;
 ID3D11RasterizerState* DefaultState;
+
+ID3D11SamplerState* SamplerState;
 
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
@@ -58,7 +60,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_ghost.projection, perspectiveMatrix * orientationMatrix);
-//	XMStoreFloat4x4(&m_constantBufferData_grid.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_grid.projection, perspectiveMatrix * orientationMatrix);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	// When key press set the at to the object's position
@@ -75,7 +77,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_elephant.view, XMMatrixLookAtLH(eye, at, up));
 	XMStoreFloat4x4(&m_constantBufferData_ghost.view, XMMatrixLookAtLH(eye, at, up));
-	//XMStoreFloat4x4(&m_constantBufferData_grid.view, XMMatrixLookAtLH(eye, at, up));
+	XMStoreFloat4x4(&m_constantBufferData_grid.view, XMMatrixLookAtLH(eye, at, up));
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -167,7 +169,7 @@ void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Set the model of the ghost to make it orbit around the elephant
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[0], (XMMatrixMultiply(XMMatrixTranslation(1.0f, 1.0f, 1.0f), XMMatrixRotationY(radians))));
-	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], (XMMatrixMultiply(XMMatrixTranslation(5.0f, 1.0f, 5.0f), XMMatrixRotationY(-radians))));
+	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], (XMMatrixMultiply(XMMatrixTranslation(5.0f, 5.0f, 5.0f), XMMatrixRotationY(-radians))));
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[2], (XMMatrixMultiply(XMMatrixTranslation(10.0f, 1.0f, 10.0f), XMMatrixRotationY(radians))));
 
 }
@@ -624,6 +626,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	// Draw the objects.
 	context->DrawIndexed(m_indexCount, 0, 0);
 
+	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
 #pragma endregion
 
 #pragma region Master Chief
@@ -734,6 +738,7 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	// Attach our pixel shader.
 	context->PSSetShader(ghost_model._pixelShader.Get(), nullptr, 0);
 
+
 	//context->DrawIndexed(ghost_model._indexCount, 0, 0);
 	context->DrawIndexedInstanced(ghost_model._indexCount, 3, 0, 0, 0);
 
@@ -747,7 +752,9 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	}
 
 	ID3D11ShaderResourceView* grid_texViews[] = { grid_meshSRV };
-	context->PSSetShaderResources(0, 1, grid_texViews);
+	ID3D11ShaderResourceView* grid_texViews_ps[] = { grid_meshSRV, grid_meshSRV_grass, grid_meshSRV_snow };
+
+	context->PSSetShaderResources(0, 3, grid_texViews_ps);
 	context->VSSetShaderResources(0, 1, grid_texViews);
 
 	XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
@@ -768,6 +775,10 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	// Send the constant buffer to the graphics device.
 	context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
+	
+	// Attach Sampler State
+	context->PSSetSamplers(0, 1, &SamplerState);
+	context->VSSetSamplers(0, 1, &SamplerState);
 
 	// Attach our pixel shader.
 	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
@@ -838,14 +849,14 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-150.0f, -150.0f, -150.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-150.0f, -150.0f,  150.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-150.0f,  150.0f, -150.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-150.0f,  150.0f,  150.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(150.0f, -150.0f, -150.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(150.0f, -150.0f,  150.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(150.0f,  150.0f, -150.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(150.0f,  150.0f,  150.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-200.0f, -200.0f, -200.0f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-200.0f, -200.0f,  200.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-200.0f,  200.0f, -200.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-200.0f,  200.0f,  200.0f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(200.0f, -200.0f, -200.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(200.0f, -200.0f,  200.0f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(200.0f,  200.0f, -200.0f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(200.0f,  200.0f,  200.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -1387,13 +1398,33 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 #pragma region Grid Initialization
 
 	{
-		const char *path = "Assets/Heightmaps/West_Norway.dds";
+		const char *path = "Assets/Heightmaps/hm2.dds";
 
 		size_t pathSize = strlen(path) + 1;
 		wchar_t *wc = new wchar_t[pathSize];
 		mbstowcs(&wc[0], path, pathSize);
 
 		hr = CreateDDSTextureFromFile(device, wc, &grid_texture, &grid_meshSRV);
+	}
+
+	{
+		const char *path = "Assets/Textures/Deep-Freeze.dds";
+
+		size_t pathSize = strlen(path) + 1;
+		wchar_t *wc = new wchar_t[pathSize];
+		mbstowcs(&wc[0], path, pathSize);
+
+		hr = CreateDDSTextureFromFile(device, wc, &grid_texture_snow, &grid_meshSRV_snow);
+	}
+
+	{
+		const char *path = "Assets/Textures/grass_seamless.dds";
+
+		size_t pathSize = strlen(path) + 1;
+		wchar_t *wc = new wchar_t[pathSize];
+		mbstowcs(&wc[0], path, pathSize);
+
+		hr = CreateDDSTextureFromFile(device, wc, &grid_texture_grass, &grid_meshSRV_grass);
 	}
 
 	// After the vertex shader file is loaded, create the shader and input layout.
@@ -1424,11 +1455,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto createTask_grid = (createPSTask_grid && createVSTask_grid).then([this]()
 	{
 		std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
-		std::vector<DirectX::XMFLOAT3> grid_normals;
-		std::vector<DirectX::XMFLOAT2> grid_uvs;
 		std::vector<unsigned int> grid_indices;
 
-		loadOBJ("Assets/Models/Grid.obj", grid_vertices, grid_indices, grid_normals, grid_uvs);
+		grid_vertices = GenerateGrid(512, 512);
+		grid_indices = GenerateIndices(512, 512);
 
 		// Scale down the model
 		for (unsigned int i = 0; i < grid_vertices.size(); i++)
@@ -1440,7 +1470,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 			// Move the grid Model Somewhere below the elephant for it to be the floor
 			temp.pos.y -= 25.0f;
-			temp.pos.z -= 50.0f;
 			grid_vertices[i] = temp;
 		}
 
@@ -1486,11 +1515,24 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], identity);
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[2], identity);
 
-
 	// Set the model of the grid model to the identity matrix
-	// XMStoreFloat4x4(&m_constantBufferData_grid.model, identity);
+	XMStoreFloat4x4(&m_constantBufferData_grid.model, identity);
 
 #pragma endregion
+
+#pragma region Sample State Inialization
+
+	D3D11_SAMPLER_DESC sample_desc;
+	ZeroMemory(&sample_desc, sizeof(sample_desc));
+	sample_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sample_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sample_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sample_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+	device->CreateSamplerState(&sample_desc, &SamplerState);
+	
+#pragma endregion
+
 
 }
 
@@ -1549,8 +1591,52 @@ void Sample3DSceneRenderer::UpdateAt()
 {
 	if (camera2_auto_rotate)
 	{
-		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model[0]._41, m_constantBufferData_ghost.model[0]._42, m_constantBufferData_ghost.model[0]._43, 0.0f };
-		
-		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, ghost_location, up)));
+		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model[1]._41, m_constantBufferData_ghost.model[1]._42, m_constantBufferData_ghost.model[1]._43, 1.0f };
+		XMVECTORF32 camera_location = { m_camera2._41, m_camera2._42, m_camera2._43,1.0f };
+
+		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(camera_location, ghost_location, up)));
 	}
+}
+
+vector<VertexPositionUVNormal> Sample3DSceneRenderer::GenerateGrid(int _width, int _height)
+{
+	vector<VertexPositionUVNormal> vertices;
+	VertexPositionUVNormal temp;
+
+	float du = 1.0f / (_width - 1.0f);
+	float dv = 1.0f / (_height - 1.0f);
+
+	for (int r = 0; r < _width; r++)
+	{
+		for (int c = 0; c < _height; c++)
+		{
+			temp.pos = XMFLOAT3((float)c, 0.0f, (float)r);
+			temp.normal = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			temp.uv = XMFLOAT3(c * du, r * dv, 0.0f);
+			vertices.push_back(temp);
+		}
+	}
+
+	return vertices;
+}
+
+vector<unsigned int> Sample3DSceneRenderer::GenerateIndices(int _width, int _height)
+{
+	vector<unsigned int> indices;
+
+	for (int r = 0; r < _width - 1; r++)
+	{
+		for (int c = 0; c < _height - 1; c++)
+		{
+			indices.push_back(r * _height + c);
+			indices.push_back((r + 1) * _height + c);
+			indices.push_back(r * _height + (c + 1));
+
+			indices.push_back((r + 1) * _height + c);
+			indices.push_back((r + 1) * _height + (c + 1));
+			indices.push_back((r * _height + (c + 1)));
+		}
+	}
+
+	return indices;
 }
