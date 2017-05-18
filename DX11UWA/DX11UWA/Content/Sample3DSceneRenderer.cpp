@@ -321,9 +321,19 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		m_prevMousePos2 = m_currMousePos2;
 	}
 
+
+
 	// Use last row of the object.model to change the at
-	if (m_kbuttons[VK_F2])
-		camera2_auto_rotate != camera2_auto_rotate;
+	if (m_kbuttons[VK_F5])
+		camera2_auto_rotate = true;
+
+	if (m_kbuttons[VK_F6])
+		camera2_auto_rotate = false;
+
+	// Call the UpdateAt() function
+	UpdateAt();
+
+
 
 	// Buttons To Change Between WireFrame and DefaultState 
 	if (m_kbuttons[VK_F3])
@@ -529,7 +539,6 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 #pragma endregion
 
-	// Call the UpdateAt() function
 }
 
 void Sample3DSceneRenderer::SetKeyboardButtons(const char* list)
@@ -732,38 +741,38 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 #pragma region Grid
 
-	//if (!grid_model._loadingComplete)
-	//{
-	//	return;
-	//}
+	if (!grid_model._loadingComplete)
+	{
+		return;
+	}
 
-	//ID3D11ShaderResourceView* grid_texViews[] = { grid_meshSRV };
-	//context->PSSetShaderResources(0, 1, grid_texViews);
-	//context->VSSetShaderResources(0, 1, grid_texViews);
+	ID3D11ShaderResourceView* grid_texViews[] = { grid_meshSRV };
+	context->PSSetShaderResources(0, 1, grid_texViews);
+	context->VSSetShaderResources(0, 1, grid_texViews);
 
-	//XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
+	XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
 
-	//// Setup Vertex Buffer
-	//UINT grid_stride = sizeof(DX11UWA::VertexPositionUVNormal);
-	//UINT grid_offset = 0;
-	//context->IASetVertexBuffers(0, 1, grid_model._vertexBuffer.GetAddressOf(), &grid_stride, &grid_offset);
+	// Setup Vertex Buffer
+	UINT grid_stride = sizeof(DX11UWA::VertexPositionUVNormal);
+	UINT grid_offset = 0;
+	context->IASetVertexBuffers(0, 1, grid_model._vertexBuffer.GetAddressOf(), &grid_stride, &grid_offset);
 
-	//// Set Index buffer
-	//context->IASetIndexBuffer(grid_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	//context->IASetInputLayout(grid_model._inputLayout.Get());
+	// Set Index buffer
+	context->IASetIndexBuffer(grid_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetInputLayout(grid_model._inputLayout.Get());
 
-	//context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
+	context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
 
-	//// Attach our vertex shader.
-	//context->VSSetShader(grid_model._vertexShader.Get(), nullptr, 0);
+	// Attach our vertex shader.
+	context->VSSetShader(grid_model._vertexShader.Get(), nullptr, 0);
 
-	//// Send the constant buffer to the graphics device.
-	//context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 
-	//// Attach our pixel shader.
-	//context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
+	// Attach our pixel shader.
+	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
 
-	//context->DrawIndexed(grid_model._indexCount, 0, 0);
+	context->DrawIndexed(grid_model._indexCount, 0, 0);
 
 #pragma endregion
 
@@ -1122,7 +1131,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&ghost_fileData[0], ghost_fileData.size(), nullptr, &ghost_model._pixelShader));
 
-		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBufferInstanced), D3D11_BIND_CONSTANT_BUFFER);
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &ghost_model._constantBuffer));
 	});
 
@@ -1377,86 +1386,86 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 #pragma region Grid Initialization
 
-	//{
-	//	const char *path = "Assets/Heightmaps/West_Norway.dds";
+	{
+		const char *path = "Assets/Heightmaps/West_Norway.dds";
 
-	//	size_t pathSize = strlen(path) + 1;
-	//	wchar_t *wc = new wchar_t[pathSize];
-	//	mbstowcs(&wc[0], path, pathSize);
+		size_t pathSize = strlen(path) + 1;
+		wchar_t *wc = new wchar_t[pathSize];
+		mbstowcs(&wc[0], path, pathSize);
 
-	//	hr = CreateDDSTextureFromFile(device, wc, &grid_texture, &grid_meshSRV);
-	//}
+		hr = CreateDDSTextureFromFile(device, wc, &grid_texture, &grid_meshSRV);
+	}
 
-	//// After the vertex shader file is loaded, create the shader and input layout.
-	//auto createVSTask_grid = loadVSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
-	//{
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._vertexShader));
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createVSTask_grid = loadVSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._vertexShader));
 
-	//	static const D3D11_INPUT_ELEMENT_DESC grid_vertexDesc[] =
-	//	{
-	//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//		{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	//	};
+		static const D3D11_INPUT_ELEMENT_DESC grid_vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(grid_vertexDesc, ARRAYSIZE(grid_vertexDesc), &grid_fileData[0], grid_fileData.size(), &grid_model._inputLayout));
-	//});
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(grid_vertexDesc, ARRAYSIZE(grid_vertexDesc), &grid_fileData[0], grid_fileData.size(), &grid_model._inputLayout));
+	});
 
-	//// After the pixel shader file is loaded, create the shader and constant buffer.
-	//auto createPSTask_grid = loadPSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
-	//{
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._pixelShader));
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPSTask_grid = loadPSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._pixelShader));
 
-	//	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &grid_model._constantBuffer));
-	//});
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &grid_model._constantBuffer));
+	});
 
-	//// Once both shaders are loaded, create the mesh.
-	//auto createTask_grid = (createPSTask_grid && createVSTask_grid).then([this]()
-	//{
-	//	std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
-	//	std::vector<DirectX::XMFLOAT3> grid_normals;
-	//	std::vector<DirectX::XMFLOAT2> grid_uvs;
-	//	std::vector<unsigned int> grid_indices;
+	// Once both shaders are loaded, create the mesh.
+	auto createTask_grid = (createPSTask_grid && createVSTask_grid).then([this]()
+	{
+		std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
+		std::vector<DirectX::XMFLOAT3> grid_normals;
+		std::vector<DirectX::XMFLOAT2> grid_uvs;
+		std::vector<unsigned int> grid_indices;
 
-	//	loadOBJ("Assets/Models/Grid.obj", grid_vertices, grid_indices, grid_normals, grid_uvs);
+		loadOBJ("Assets/Models/Grid.obj", grid_vertices, grid_indices, grid_normals, grid_uvs);
 
-	//	// Scale down the model
-	//	for (unsigned int i = 0; i < grid_vertices.size(); i++)
-	//	{
-	//		VertexPositionUVNormal temp = grid_vertices[i];
-	//		/*temp.pos.x *= 2.5f;
-	//		temp.pos.y *= 2.5f;
-	//		temp.pos.z *= 2.5f;*/
+		// Scale down the model
+		for (unsigned int i = 0; i < grid_vertices.size(); i++)
+		{
+			VertexPositionUVNormal temp = grid_vertices[i];
+			/*temp.pos.x *= 2.5f;
+			temp.pos.y *= 2.5f;
+			temp.pos.z *= 2.5f;*/
 
-	//		// Move the grid Model Somewhere below the elephant for it to be the floor
-	//		temp.pos.y -= 25.0f;
-	//		temp.pos.z -= 50.0f;
-	//		grid_vertices[i] = temp;
-	//	}
+			// Move the grid Model Somewhere below the elephant for it to be the floor
+			temp.pos.y -= 25.0f;
+			temp.pos.z -= 50.0f;
+			grid_vertices[i] = temp;
+		}
 
-	//	D3D11_SUBRESOURCE_DATA grid_vertexBufferData = { 0 };
-	//	grid_vertexBufferData.pSysMem = grid_vertices.data();
-	//	grid_vertexBufferData.SysMemPitch = 0;
-	//	grid_vertexBufferData.SysMemSlicePitch = 0;
-	//	CD3D11_BUFFER_DESC grid_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * grid_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&grid_vertexBufferDesc, &grid_vertexBufferData, &grid_model._vertexBuffer));
+		D3D11_SUBRESOURCE_DATA grid_vertexBufferData = { 0 };
+		grid_vertexBufferData.pSysMem = grid_vertices.data();
+		grid_vertexBufferData.SysMemPitch = 0;
+		grid_vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC grid_vertexBufferDesc(sizeof(DX11UWA::VertexPositionUVNormal) * grid_vertices.size(), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&grid_vertexBufferDesc, &grid_vertexBufferData, &grid_model._vertexBuffer));
 
-	//	grid_model._indexCount = grid_indices.size();
+		grid_model._indexCount = grid_indices.size();
 
-	//	D3D11_SUBRESOURCE_DATA grid_indexBufferData = { 0 };
-	//	grid_indexBufferData.pSysMem = grid_indices.data();
-	//	grid_indexBufferData.SysMemPitch = 0;
-	//	grid_indexBufferData.SysMemSlicePitch = 0;
-	//	CD3D11_BUFFER_DESC grid_indexBufferDesc(sizeof(unsigned int) * grid_indices.size(), D3D11_BIND_INDEX_BUFFER);
-	//	DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&grid_indexBufferDesc, &grid_indexBufferData, &grid_model._indexBuffer));
-	//});
+		D3D11_SUBRESOURCE_DATA grid_indexBufferData = { 0 };
+		grid_indexBufferData.pSysMem = grid_indices.data();
+		grid_indexBufferData.SysMemPitch = 0;
+		grid_indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC grid_indexBufferDesc(sizeof(unsigned int) * grid_indices.size(), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&grid_indexBufferDesc, &grid_indexBufferData, &grid_model._indexBuffer));
+	});
 
-	//// Once the cube is loaded, the object is ready to be rendered.
-	//createTask_grid.then([this]()
-	//{
-	//	grid_model._loadingComplete = true;
-	//});
+	// Once the cube is loaded, the object is ready to be rendered.
+	createTask_grid.then([this]()
+	{
+		grid_model._loadingComplete = true;
+	});
 
 #pragma endregion
 
@@ -1526,14 +1535,14 @@ void Sample3DSceneRenderer::UpdatePlanes()
 	XMStoreFloat4x4(&m_constantBufferData_master_chief.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_elephant.projection, perspectiveMatrix * orientationMatrix);
 	XMStoreFloat4x4(&m_constantBufferData_ghost.projection, perspectiveMatrix * orientationMatrix);
-	//XMStoreFloat4x4(&m_constantBufferData_grid.projection, perspectiveMatrix * orientationMatrix);
+	XMStoreFloat4x4(&m_constantBufferData_grid.projection, perspectiveMatrix * orientationMatrix);
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
 	context->UpdateSubresource1(master_chief_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_master_chief, 0, 0, 0);
 	context->UpdateSubresource1(elephant_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_elephant, 0, 0, 0);
 	context->UpdateSubresource1(ghost_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_ghost, 0, 0, 0);
-	//context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
+	context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
 }
 
 void Sample3DSceneRenderer::UpdateAt()
@@ -1543,10 +1552,5 @@ void Sample3DSceneRenderer::UpdateAt()
 		XMVECTORF32 ghost_location = { m_constantBufferData_ghost.model[0]._41, m_constantBufferData_ghost.model[0]._42, m_constantBufferData_ghost.model[0]._43, 0.0f };
 		
 		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, ghost_location, up)));
-	}
-	
-	if (!camera2_auto_rotate)
-	{
-		XMStoreFloat4x4(&m_camera2, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at, up)));
 	}
 }
