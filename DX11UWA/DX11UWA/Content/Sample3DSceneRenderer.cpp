@@ -607,6 +607,10 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use)));
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranslation(_camera_to_use._41, _camera_to_use._42, _camera_to_use._43));
 
+	// Set Hull and Domain shader to null
+	context->HSSetShader(nullptr, nullptr, 0);
+	context->DSSetShader(nullptr, nullptr, 0);
+
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
 	// Each vertex is one instance of the VertexPositionColor struct.
@@ -756,6 +760,7 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	context->PSSetShaderResources(0, 3, grid_texViews_ps);
 	context->VSSetShaderResources(0, 1, grid_texViews);
+	context->DSSetShaderResources(0, 1, grid_texViews);
 
 	XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
 
@@ -764,24 +769,29 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	UINT grid_offset = 0;
 	context->IASetVertexBuffers(0, 1, grid_model._vertexBuffer.GetAddressOf(), &grid_stride, &grid_offset);
 
+	// Set the shaders
+	context->VSSetShader(grid_model._vertexShader.Get(), nullptr, 0);
+	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
+	context->HSSetShader(grid_model._hullShader.Get(), nullptr, 0);
+	context->DSSetShader(grid_model._domainShader.Get(), nullptr, 0);
+
+
 	// Set Index buffer
 	context->IASetIndexBuffer(grid_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	context->IASetInputLayout(grid_model._inputLayout.Get());
 
 	context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
 
-	// Attach our vertex shader.
-	context->VSSetShader(grid_model._vertexShader.Get(), nullptr, 0);
+	// Attach our buffer to the Domain Shader
+	context->DSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 
 	// Send the constant buffer to the graphics device.
 	context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
 	
 	// Attach Sampler State
 	context->PSSetSamplers(0, 1, &SamplerState);
-	context->VSSetSamplers(0, 1, &SamplerState);
-
-	// Attach our pixel shader.
-	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
+	context->DSSetSamplers(0, 1, &SamplerState);
 
 	context->DrawIndexed(grid_model._indexCount, 0, 0);
 
@@ -804,6 +814,11 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	auto loadPSTaskHeightmap = DX::ReadDataAsync(L"HeightMapPixelShader.cso");
 	auto loadVSTaskInstance = DX::ReadDataAsync(L"InstanceVertexShader.cso");		// Textured
 	auto loadPSTaskInstance = DX::ReadDataAsync(L"InstancePixelShader.cso");		// Textured
+	auto loadVSTaskTesselation = DX::ReadDataAsync(L"TerrainVertexShader.cso");
+	auto loadPSTaskTesselation = DX::ReadDataAsync(L"TerrainPixelShader.cso");
+	auto loadHSTaskTesselation = DX::ReadDataAsync(L"TerrainHullShader.cso");
+	auto loadDSTaskTesselation = DX::ReadDataAsync(L"TerrainDomainShader.cso");
+
 
 #pragma region Skybox
 
@@ -1398,7 +1413,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 #pragma region Grid Initialization
 
 	{
-		const char *path = "Assets/Heightmaps/hm2.dds";
+		const char *path = "Assets/Heightmaps/vtest.dds";
 
 		size_t pathSize = strlen(path) + 1;
 		wchar_t *wc = new wchar_t[pathSize];
@@ -1428,7 +1443,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	}
 
 	// After the vertex shader file is loaded, create the shader and input layout.
-	auto createVSTask_grid = loadVSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
+	auto createVSTask_grid = loadVSTaskTesselation.then([this](const std::vector<byte>& grid_fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._vertexShader));
 
@@ -1443,7 +1458,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	});
 
 	// After the pixel shader file is loaded, create the shader and constant buffer.
-	auto createPSTask_grid = loadPSTaskHeightmap.then([this](const std::vector<byte>& grid_fileData)
+	auto createPSTask_grid = loadPSTaskTesselation.then([this](const std::vector<byte>& grid_fileData)
 	{
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._pixelShader));
 
@@ -1451,8 +1466,18 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &grid_model._constantBuffer));
 	});
 
+	auto createHSTask_grid = loadHSTaskTesselation.then([this](const std::vector<byte>& grid_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateHullShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._hullShader));
+	});
+
+	auto createDSTask_grid = loadDSTaskTesselation.then([this](const std::vector<byte>& grid_fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateDomainShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._domainShader));
+	});
+
 	// Once both shaders are loaded, create the mesh.
-	auto createTask_grid = (createPSTask_grid && createVSTask_grid).then([this]()
+	auto createTask_grid = (createPSTask_grid && createVSTask_grid && createHSTask_grid && createDSTask_grid).then([this]()
 	{
 		std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
 		std::vector<unsigned int> grid_indices;

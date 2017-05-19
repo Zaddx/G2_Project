@@ -14,9 +14,13 @@ struct Model
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>	_inputLayout;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		_vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		_indexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		_constantBuffer;
+
+	// Shaders
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>	_vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	_pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>		_constantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11HullShader>	_hullShader;
+	Microsoft::WRL::ComPtr<ID3D11DomainShader>	_domainShader;
 
 	// Stuff that individuals models will have
 	std::vector<DirectX::XMFLOAT3>				_vertices;

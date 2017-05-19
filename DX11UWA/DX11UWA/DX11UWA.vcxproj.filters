@@ -158,6 +158,15 @@
     <Image Include="Assets\Heightmaps\hm2.dds">
       <Filter>Assets\Heightmaps</Filter>
     </Image>
+    <Image Include="Assets\Heightmaps\hm3.dds">
+      <Filter>Assets\Heightmaps</Filter>
+    </Image>
+    <Image Include="Assets\Heightmaps\95_lost_city.dds">
+      <Filter>Assets\Heightmaps</Filter>
+    </Image>
+    <Image Include="Assets\Heightmaps\vtest.dds">
+      <Filter>Assets\Heightmaps</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -212,6 +221,18 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\InstanceVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainHullShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainDomainShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TerrainVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
