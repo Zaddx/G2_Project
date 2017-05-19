@@ -27,5 +27,4 @@ float4 main(DS_OUTPUT input) : SV_TARGET
 
     // Read the color from the two images, and the color from the Heightmap
     return finalColor;
-
 }

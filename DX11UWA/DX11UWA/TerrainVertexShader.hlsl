@@ -11,7 +11,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 // Per-vertex data used as input to the vertex shader. 
 struct VertexShaderInput
 {
-    float4 pos : POSITION;
+    float3 pos : POSITION;
     float2 uv : UV;
     float3 norm : NORM;
 };
@@ -30,7 +30,7 @@ HS_CONTROL_POINT_INPUT main(VertexShaderInput input)
     HS_CONTROL_POINT_INPUT output;
 
   // Transform the vertex position into projected space. 
-    output.PositionL = input.pos;
+    output.PositionL = float4(input.pos, 1.0f);
  
   // Pass the color through without modification. 
     output.uv = input.uv;

@@ -26,8 +26,6 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 #define NUM_CONTROL_POINTS 3
 
-float g_TessellationFactor = 15.0f;
-
 // Patch Constant Function
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
@@ -38,10 +36,10 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	// Assign tessellation factors - in this case use a global
     // tessellation factor for all edges and the inside. These are
     // constant for the wole mesh.
-    Output.EdgeTessFactor[0] = g_TessellationFactor;
-    Output.EdgeTessFactor[1] = g_TessellationFactor;
-    Output.EdgeTessFactor[2] = g_TessellationFactor;
-    Output.InsideTessFactor = g_TessellationFactor;
+    Output.EdgeTessFactor[0] =
+    Output.EdgeTessFactor[1] =
+    Output.EdgeTessFactor[2] = 4;
+    Output.InsideTessFactor = 0; // ~8 partitions
 
 	return Output;
 }

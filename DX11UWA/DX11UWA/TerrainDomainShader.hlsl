@@ -1,6 +1,6 @@
 #pragma pack_matrix(row_major) 
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixConstantBuffer : register(b0)
 {
     matrix world;
     matrix view;
@@ -51,9 +51,9 @@ DS_OUTPUT main(
 	//	patch[0].PositionL * domain.x + patch[1].PositionL * domain.y + patch[2].PositionL * domain.z, 1);
 
     float3 worldPos =
-        domain.x * patch[0].PositionL +
-        domain.y * patch[1].PositionL +
-        domain.z * patch[2].PositionL;
+        domain.x * patch[0].PositionL.xyz +
+        domain.y * patch[1].PositionL.xyz +
+        domain.z * patch[2].PositionL.xyz;
 
     Output.uv =
         domain.x * patch[0].uv +
@@ -71,7 +71,7 @@ DS_OUTPUT main(
     float3 Direction = -normal;     // direction is opposite normal
 
     // translate the position
-    worldPos += Direction * Height;
+    worldPos.y += Direction * Height;
 
     float4 pos = mul(float4(worldPos.xyz, 1.0f), world);
     pos = mul(float4(pos.xyz, 1.0f), view);

@@ -759,7 +759,6 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	ID3D11ShaderResourceView* grid_texViews_ps[] = { grid_meshSRV, grid_meshSRV_grass, grid_meshSRV_snow };
 
 	context->PSSetShaderResources(0, 3, grid_texViews_ps);
-	context->VSSetShaderResources(0, 1, grid_texViews);
 	context->DSSetShaderResources(0, 1, grid_texViews);
 
 	XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
@@ -774,7 +773,6 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	context->PSSetShader(grid_model._pixelShader.Get(), nullptr, 0);
 	context->HSSetShader(grid_model._hullShader.Get(), nullptr, 0);
 	context->DSSetShader(grid_model._domainShader.Get(), nullptr, 0);
-
 
 	// Set Index buffer
 	context->IASetIndexBuffer(grid_model._indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -1482,8 +1480,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
 		std::vector<unsigned int> grid_indices;
 
-		grid_vertices = GenerateGrid(512, 512);
-		grid_indices = GenerateIndices(512, 512);
+		grid_vertices = GenerateGrid(10, 10);
+		grid_indices = GenerateIndices(10, 10);
 
 		// Scale down the model
 		for (unsigned int i = 0; i < grid_vertices.size(); i++)
