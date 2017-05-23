@@ -59,13 +59,12 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     float4 pos = ip[0].PositionL;
     pos = mul(pos, world);
     pos = mul(pos, view);
+    
+    ratio = (pos.z / maxDistance) * maxDistance;
+    partitionAmount = 63.0f / ratio;
 
     if (pos.z >= maxDistance)
         partitionAmount = 1.0f;
-    else
-        ratio = (pos.z / maxDistance) * maxDistance;
-
-    partitionAmount = 63.0f / ratio;
 
    // partitionAmount = max(63.0f - pos.z, 1.0f);
     Output.EdgeTessFactor[0] = partitionAmount;
