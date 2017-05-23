@@ -167,7 +167,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 // Rotate the 3D cube model a set amount of radians.
 void Sample3DSceneRenderer::Rotate(float radians)
 {
-	// Set the model of the ghost to make it orbit around the elephant
+	// Set the model of the ghost to make it orbit around the elephant 
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[0], (XMMatrixMultiply(XMMatrixTranslation(1.0f,  -35.0f, 40.0f), XMMatrixRotationY(radians))));
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[1], XMMatrixMultiply(XMMatrixTranslation(12.0f, -35.0f, 70.0f), (XMMatrixRotationY(-radians / 2.0f))));
 	XMStoreFloat4x4(&m_constantBufferData_ghost.model[2], (XMMatrixMultiply(XMMatrixTranslation(20.0f, -35.0f, 100.0f), XMMatrixRotationY(radians))));
