@@ -599,6 +599,8 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	else if (_camera_number == 2)
 		_camera_to_use = m_camera2;
 
+
+
 #pragma region Skybox
 
 	ID3D11ShaderResourceView** skyboxViews[] = { skybox_meshSRV.GetAddressOf() };
@@ -763,7 +765,14 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 
 	XMStoreFloat4x4(&m_constantBufferData_grid.view, (XMMatrixInverse(nullptr, XMLoadFloat4x4(&_camera_to_use))));
 
-	// Setup Vertex Buffer
+	// Set the camera of the camera to the camera matrix
+	XMStoreFloat4x4(&m_constantBufferData_camera._camera, XMLoadFloat4x4(&_camera_to_use));
+
+	// Update buffers
+	context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
+	context->UpdateSubresource1(camera_constantBuffer.Get(), 0, NULL, &m_constantBufferData_camera, 0, 0, 0);
+
+	// Setup Vertex Buffer6
 	UINT grid_stride = sizeof(DX11UWA::VertexPositionUVNormal);
 	UINT grid_offset = 0;
 	context->IASetVertexBuffers(0, 1, grid_model._vertexBuffer.GetAddressOf(), &grid_stride, &grid_offset);
@@ -779,10 +788,11 @@ void Sample3DSceneRenderer::Render(int _camera_number)
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	context->IASetInputLayout(grid_model._inputLayout.Get());
 
-	context->UpdateSubresource1(grid_model._constantBuffer.Get(), 0, NULL, &m_constantBufferData_grid, 0, 0, 0);
 
-	// Attach our buffer to the Domain Shader
+	// Attach our buffer to the Domain and Hull Shader
 	context->DSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
+	context->HSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
+	context->HSSetConstantBuffers1(1, 1, camera_constantBuffer.GetAddressOf(), nullptr, nullptr);
 
 	// Send the constant buffer to the graphics device.
 	context->VSSetConstantBuffers1(0, 1, grid_model._constantBuffer.GetAddressOf(), nullptr, nullptr);
@@ -1448,7 +1458,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		static const D3D11_INPUT_ELEMENT_DESC grid_vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
@@ -1461,7 +1471,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&grid_fileData[0], grid_fileData.size(), nullptr, &grid_model._pixelShader));
 
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		CD3D11_BUFFER_DESC camera_constantBufferDesc(sizeof(CameraConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &grid_model._constantBuffer));
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&camera_constantBufferDesc, nullptr, &camera_constantBuffer));
 	});
 
 	auto createHSTask_grid = loadHSTaskTesselation.then([this](const std::vector<byte>& grid_fileData)
@@ -1480,8 +1493,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<DX11UWA::VertexPositionUVNormal> grid_vertices;
 		std::vector<unsigned int> grid_indices;
 
-		grid_vertices = GenerateGrid(10, 10);
-		grid_indices = GenerateIndices(10, 10);
+		grid_vertices = GenerateGrid(64, 64);
+		grid_indices = GenerateIndices(64, 64);
 
 		// Scale down the model
 		for (unsigned int i = 0; i < grid_vertices.size(); i++)
@@ -1540,6 +1553,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	// Set the model of the grid model to the identity matrix
 	XMStoreFloat4x4(&m_constantBufferData_grid.model, identity);
+
+
 
 #pragma endregion
 
@@ -1634,7 +1649,7 @@ vector<VertexPositionUVNormal> Sample3DSceneRenderer::GenerateGrid(int _width, i
 		for (int c = 0; c < _height; c++)
 		{
 			temp.pos = XMFLOAT3((float)c, 0.0f, (float)r);
-			temp.normal = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			temp.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			temp.uv = XMFLOAT3(c * du, r * dv, 0.0f);
 			vertices.push_back(temp);
 		}

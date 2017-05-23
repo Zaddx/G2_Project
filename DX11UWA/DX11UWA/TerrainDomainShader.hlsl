@@ -36,8 +36,8 @@ struct HS_CONSTANT_DATA_OUTPUT
 Texture2D HeightMap : register(t0);
 SamplerState SampleLinear : register(s0);
 
-float Scale = 100.0f;
-float Bias = 0.0f;
+static float Scale = 10.0f;
+static float Bias = 0.0f;
 
 [domain("tri")]
 DS_OUTPUT main(
@@ -45,7 +45,7 @@ DS_OUTPUT main(
 	float3 domain : SV_DomainLocation,
 	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)
 {
-	DS_OUTPUT Output;
+    DS_OUTPUT Output = (DS_OUTPUT) 0;
 
 	//Output.PositionL = float4(
 	//	patch[0].PositionL * domain.x + patch[1].PositionL * domain.y + patch[2].PositionL * domain.z, 1);
@@ -57,7 +57,8 @@ DS_OUTPUT main(
 
     Output.uv =
         domain.x * patch[0].uv +
-        domain.y * patch[1].uv;
+        domain.y * patch[1].uv +
+        domain.z * patch[2].uv;
 
     float3 normal =
         domain.x * patch[0].norm +
@@ -71,7 +72,7 @@ DS_OUTPUT main(
     float3 Direction = -normal;     // direction is opposite normal
 
     // translate the position
-    worldPos.y += Direction * Height;
+    worldPos -= Direction * Height;
 
     float4 pos = mul(float4(worldPos.xyz, 1.0f), world);
     pos = mul(float4(pos.xyz, 1.0f), view);

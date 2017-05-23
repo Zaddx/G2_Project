@@ -1,3 +1,17 @@
+#pragma pack_matrix(row_major) 
+
+cbuffer MatrixConstantBuffer : register(b0)
+{
+    matrix world;
+    matrix view;
+    matrix proj;
+}
+
+cbuffer Camera : register(b1)
+{
+    matrix _camera;
+}
+
 // Input control point
 struct VS_CONTROL_POINT_OUTPUT
 {
@@ -31,15 +45,34 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip,
 	uint PatchID : SV_PrimitiveID)
 {
-	HS_CONSTANT_DATA_OUTPUT Output;
+	HS_CONSTANT_DATA_OUTPUT Output = (HS_CONSTANT_DATA_OUTPUT) 0;
 
 	// Assign tessellation factors - in this case use a global
     // tessellation factor for all edges and the inside. These are
     // constant for the wole mesh.
-    Output.EdgeTessFactor[0] =
-    Output.EdgeTessFactor[1] =
-    Output.EdgeTessFactor[2] = 4;
-    Output.InsideTessFactor = 0; // ~8 partitions
+    // 0 -> 63
+    // (pos / max) * max
+    float partitionAmount = 1.0f;
+    float maxDistance = 100.0f;
+    float ratio = 0.0f;
+
+    float4 pos = ip[0].PositionL;
+    pos = mul(pos, world);
+    pos = mul(pos, view);
+
+    if (pos.z >= maxDistance)
+        partitionAmount = 1.0f;
+    else
+        ratio = (pos.z / maxDistance) * maxDistance;
+
+    partitionAmount = 63.0f / ratio;
+
+   // partitionAmount = max(63.0f - pos.z, 1.0f);
+    Output.EdgeTessFactor[0] = partitionAmount;
+    Output.EdgeTessFactor[1] = partitionAmount;
+    Output.EdgeTessFactor[2] = partitionAmount;
+
+    Output.InsideTessFactor = partitionAmount; 
 
 	return Output;
 }

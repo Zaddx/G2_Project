@@ -12,7 +12,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 struct VertexShaderInput
 {
     float3 pos : POSITION;
-    float2 uv : UV;
+    float3 uv : UV;
     float3 norm : NORM;
 };
  
@@ -33,7 +33,7 @@ HS_CONTROL_POINT_INPUT main(VertexShaderInput input)
     output.PositionL = float4(input.pos, 1.0f);
  
   // Pass the color through without modification. 
-    output.uv = input.uv;
+    output.uv = input.uv.xy;
 
   // Pass the normals through without modification. 
     output.norm = input.norm;

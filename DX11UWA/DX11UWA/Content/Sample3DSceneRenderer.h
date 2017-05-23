@@ -186,6 +186,10 @@ namespace DX11UWA
 		Model grid_model;
 		ModelViewProjectionConstantBuffer m_constantBufferData_grid;
 
+		// For Camera
+		Microsoft::WRL::ComPtr<ID3D11Buffer> camera_constantBuffer;
+		CameraConstantBuffer m_constantBufferData_camera;
+
 		// Texture Variables
 		ID3D11Resource* grid_texture;
 		ID3D11Resource* grid_texture_snow;

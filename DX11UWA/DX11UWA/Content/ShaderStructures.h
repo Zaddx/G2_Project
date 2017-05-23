@@ -30,4 +30,9 @@ namespace DX11UWA
 		DirectX::XMFLOAT3 uv;
 		DirectX::XMFLOAT3 normal;
 	};
+
+	struct CameraConstantBuffer
+	{
+		DirectX::XMFLOAT4X4 _camera;
+	};
 }
